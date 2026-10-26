@@ -23,7 +23,7 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 
 | Folder | What |
 |---|---|
-| `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. |
+| `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. In-person connect (Bluetooth and QR) in `src/handshake/`. |
 | `supabase/` | Database schema, security, matching, the connect-handshake function, seed data and tests. |
 | `prototype/index.html` | Single-file clickable mock-up (also published as a Claude artifact). |
 | `docs/` | Research, launch plan, ID checks and AI notes, and `decisions.md` (why things are the way they are). |
@@ -45,6 +45,6 @@ When changing a matching or privacy rule, change it in all three places (`app/sr
 
 1. Create a Supabase project, run the migration, and connect the app store to it.
 2. Choose an ID check provider.
-3. Build the Bluetooth connect, with a QR code fallback.
+3. Test the Bluetooth connect on two real phones. The code and the QR fallback are built (`app/src/handshake/`), but Bluetooth needs a development build (`npx expo run:android`, `npx expo run:ios` or EAS Build) and tuning of the signal and distance limits.
 4. Set up in-app purchases.
 5. Get legal advice on age rules and privacy.

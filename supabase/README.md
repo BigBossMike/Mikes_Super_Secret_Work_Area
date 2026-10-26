@@ -78,11 +78,11 @@ Note: phone numbers are a small set, so a fingerprint could in principle be reve
 See the comments at the top of `functions/connect-handshake/index.ts`. In short:
 
 1. Both people press Connect.
-2. Their phones swap codes over Bluetooth that change every 5 seconds, or scan a QR code instead.
-3. The server checks that they pressed at the same time, heard each other with a strong signal, and are in the same place.
+2. Their phones swap codes over Bluetooth that change every 5 seconds, or one shows its code as a QR and the other scans it.
+3. The server checks that they pressed at the same time (Bluetooth: within 10 seconds; QR: while the shown code is live, up to 2 minutes), heard each other with a strong signal, and are in the same place.
 4. Only then are contact details unlocked.
 
-The settings at the top of that file, like the signal strength and distance limits, will need tuning with real phones.
+The app side is in `app/src/handshake/`. The code recipe and the checks are mirrored in `app/src/lib/handshake.ts` with tests, so change the settings in both files together. The signal strength and distance limits will need tuning with real phones.
 
 ## Setting it up (about 15 minutes)
 

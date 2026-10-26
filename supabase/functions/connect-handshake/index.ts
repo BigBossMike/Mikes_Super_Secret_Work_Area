@@ -16,7 +16,7 @@
 //
 //  3. This function checks that:
 //       * both people pressed Connect within 10 seconds of each other
-//         (30 seconds for QR, since scanning takes longer)
+//         (for QR, any time while the shown code is live: up to 2 minutes)
 //       * each phone heard the OTHER phone's current code (for QR, the
 //         scanner read the other phone's code)
 //       * the Bluetooth signal was strong, meaning the phones were very close
@@ -38,7 +38,7 @@ import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 // ---- Settings you might want to tune after real-world testing -------------
 const SLOT_SECONDS = 5;          // how often the Bluetooth code changes
 const PRESS_WINDOW_BLE_S = 10;   // both must press within this many seconds
-const PRESS_WINDOW_QR_S = 30;    // a bit longer for QR (camera takes time)
+const PRESS_WINDOW_QR_S = 120;   // QR: the scanned code proves freshness, so the window is just the press lifetime
 const PRESS_MAX_AGE_S = 120;     // a press is no good after 2 minutes
 const MIN_RSSI_DBM = -60;        // Bluetooth signal strength; closer to 0 = closer phones
 const MAX_DISTANCE_M = 100;      // GPS positions must be this close (plus GPS accuracy)
@@ -189,7 +189,8 @@ async function evaluate(admin: SupabaseClient, userId: string, pressId: string) 
     return json({ status: "waiting", reason: "Waiting for the other person to press Connect" });
   }
 
-  const qr = mine.heard.some((h) => h.via === "qr") || theirs.heard.some((h) => h.via === "qr");
+  const qr = mine.method === "qr" || theirs.method === "qr" ||
+    mine.heard.some((h) => h.via === "qr") || theirs.heard.some((h) => h.via === "qr");
   const window = qr ? PRESS_WINDOW_QR_S : PRESS_WINDOW_BLE_S;
   if (Math.abs(Date.parse(mine.pressed_at) - Date.parse(theirs.pressed_at)) / 1000 > window) {
     return fail(admin, mine, theirs, "You need to press Connect at the same time. Try again together.");

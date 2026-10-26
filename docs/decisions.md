@@ -17,10 +17,18 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 11 | ID checks through a **provider** (bank check via ConnectID, or photo ID plus liveness selfie). Match the profile photo to the selfie. Store only "verified" and the date of birth. | Accuracy, deepfakes, Privacy Act biometric rules, and eSafety guidance. See `docs/verification-and-ai.md`. |
 | 12 | Phone handshake: Bluetooth plus a server check, with a QR code fallback. | Works on both iPhone and Android. See `docs/research.md`. |
 | 13 | Brisbane launch led by Mike's parent network, starting with a small invite-only pilot. | See `docs/launch-plan.md`. |
+| 14 | Bluetooth library: **munim-bluetooth** (advertises and listens on both iPhone and Android). The connect code travels inside a 128-bit Bluetooth service UUID. QR fallback: expo-camera to scan, react-native-qrcode-svg to show. Decided 27 October 2026. | iPhones can only advertise service UUIDs and a name, so this is the one method that works between any two phones. Bluetooth needs a development build; Expo Go runs the demo with a pretend partner and a real QR code. |
 
 ## State at the end of the first session
 
 - `app/`: every screen working on sample data. 13 rule tests pass.
 - `supabase/`: full database with security rules. 94 local database checks pass. Not yet deployed to a real Supabase project.
-- `prototype/`: clickable mock-up, also published as a private Claude artifact.
+- `prototype/`: clickable mock-up, also published as a private Claude artifact: https://claude.ai/artifact/6EVK4s4T8vRiyEwT2votkN
 - Next steps are in `CLAUDE.md`.
+
+## Second session (27 October 2026)
+
+- `app/src/handshake/`: the in-person connect built for real. Bluetooth (munim-bluetooth) plus the QR fallback (camera scan, rotating code), a stand-in server for the demo build, and the screens `connect/[id].tsx` and `connect/qr/[id].tsx`.
+- `app/src/lib/handshake.ts`: the connect rules, the same as the server's. 36 rule tests pass. Typecheck passes.
+- Not yet tested on real phones. Bluetooth needs a development build and two phones; the QR code works in Expo Go.
+- Server function: the QR press window is now the press lifetime (2 minutes), since the scanned code itself proves freshness.

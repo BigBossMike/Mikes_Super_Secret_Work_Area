@@ -170,6 +170,16 @@ textarea.input { resize: none; min-height: 72px; }
 .bigbtn:active { transform: scale(.96); }
 .bigbtn.busy::after { content: ""; position: absolute; inset: -22px; border-radius: 50%; border: 3px solid var(--go); animation: ring 1.1s ease-out infinite; }
 @keyframes ring { from { transform: scale(.85); opacity: 1; } to { transform: scale(1.25); opacity: 0; } }
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-radius: 14px; padding: 4px; width: 100%; }
+.seg button { border: 0; background: transparent; border-radius: 11px; padding: 10px; font-family: inherit; font-weight: 600; font-size: 14px; color: var(--ink); }
+.seg button.on { background: var(--ink); color: var(--surface); }
+.qrbox { width: 224px; height: 224px; box-sizing: border-box; background: #fff; border-radius: 20px; padding: 16px; display: grid; grid-template-columns: repeat(21, 1fr); grid-template-rows: repeat(21, 1fr); }
+.qrbox i { display: block; }
+.qrbox i.on { background: #15213B; }
+.cam { width: 224px; height: 224px; border-radius: 20px; background: #111; position: relative; display: grid; place-items: center; overflow: hidden; }
+.cam::before { content: ""; width: 150px; height: 150px; border: 3px solid var(--go); border-radius: 12px; }
+.cam span { position: absolute; left: 20%; right: 20%; height: 2px; background: var(--go); animation: scanline 1.6s ease-in-out infinite alternate; }
+@keyframes scanline { from { top: 22%; } to { top: 78%; } }
 .both { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; }
 .both > div { background: var(--surface); border-radius: 14px; padding: 10px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 13px; }
 
@@ -226,6 +236,7 @@ ul.activity li { display: flex; flex-direction: column; gap: 2px; padding-left: 
       <button data-jump="matches">Matches</button>
       <button data-jump="chat">Chat</button>
       <button data-jump="connect">Connect</button>
+      <button data-jump="qr">QR fallback</button>
       <button data-jump="requests">Being put forward</button>
       <button data-jump="parentView">Parent app</button>
       <button data-jump="plans">Plans</button>
@@ -296,7 +307,7 @@ function fresh() {
             workplace: "", noWork: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
     plan: "free", credits: 0, used: 0,
     objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
-    matches: [], chatWith: null, chats: {}, connectStage: 0, lastConnected: null,
+    matches: [], chatWith: null, chats: {}, connectStage: 0, qrMode: "show", qrBusy: false, lastConnected: null,
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
                { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
                { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river", why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
@@ -374,13 +385,13 @@ function sampleState(upTo) {
   if (upTo === "parent") return;
   if (isMinor()) S.parent.status = "approved";
   if (upTo === "profile" || upTo === "verify") return;
-  if (["matches", "chat", "connect"].includes(upTo) && !S.objective) {
+  if (["matches", "chat", "connect", "qr"].includes(upTo) && !S.objective) {
     S.objective = { ...S.draft, month: MONTH, done: false };
     S.used = Math.max(S.used, 1);
     S.matches = findMatches();
     S.matches.forEach((m, i) => m.status = i === 3 ? "passed" : "agreed");
   }
-  if (["chat", "connect"].includes(upTo)) {
+  if (["chat", "connect", "qr"].includes(upTo)) {
     const first = S.matches.find(m => m.status === "agreed");
     if (first) openChat(first.id, true);
   }
@@ -606,7 +617,26 @@ const SCREENS = {
       <button class="bigbtn ${st === 1 ? "busy" : ""}" data-act="connectPress" aria-label="Connect">${st >= 2 ? "DONE" : "CONNECT"}</button>
       <div class="both"><div>${av({ name: S.user.name, hue: 210 }, "sm")}<b>You</b>${you}</div><div>${av(p, "sm")}<b>${esc(p.name)}</b>${them}</div></div>
       <p class="small muted">Bluetooth checks the two phones are right next to each other, so details can't be swapped remotely.</p>
-      <button class="btn ghost sm" data-act="qr">Use a QR code instead</button>
+      <button class="btn ghost sm" data-act="go" data-arg="qr">Use a QR code instead</button>
+    </div></div>`;
+  },
+
+  qr: () => {
+    const p = person(S.chatWith);
+    if (!p) return SCREENS.matches();
+    const show = S.qrMode !== "scan";
+    const seg = `<div class="seg"><button class="${show ? "on" : ""}" data-act="qrMode" data-arg="show">Show my code</button><button class="${show ? "" : "on"}" data-act="qrMode" data-arg="scan">Scan their code</button></div>`;
+    const status = S.qrBusy ? `<span class="pill wait dot">Checking…</span>` : show ? `<span class="pill wait dot">Waiting for ${esc(p.name)}…</span>` : "";
+    const body = show
+      ? `<div class="qrbox" aria-label="Your Intro code">${fakeQr(Math.floor(Date.now() / 5000))}</div>
+      <p>Ask ${esc(p.name)} to open Intro and scan this.<br>The code changes every 5 seconds.</p>${status}
+      <button class="btn ghost sm" data-act="qrScanned">Pretend ${esc(p.name)} scanned it</button>`
+      : `<div class="cam" aria-label="Camera"><span></span></div>
+      <p>Point the camera at ${esc(p.name)}'s code.</p>${status}
+      <button class="btn ghost sm" data-act="qrScanned">Pretend I scanned it</button>`;
+    return `<div class="scr connect">${top("Connect with " + esc(p.name), "connect")}
+    <div class="body">${seg}${body}
+      <p class="small muted">Intro also checks both phones are in the same place. Only the suburb is kept.</p>
     </div></div>`;
   },
 
@@ -739,8 +769,36 @@ function readDraft() {
   if (t) { S.draft.text = t.value.trim(); S.draft.when = w.value.trim(); S.draft.where = h.value.trim(); S.draft.group = Number(document.getElementById("ogroup").value); }
 }
 
+// Both phones checked out: unlock details, finish the objective, show the Connected screen.
+function connectDone() {
+  const id = S.chatWith;
+  S.chats[id].connected = true;
+  S.chats[id].msgs.push({ from: "sys", text: "You connected in person. Details unlocked." });
+  S.lastConnected = id;
+  const m = S.matches.find(x => x.id === id);
+  if (m && S.objective) { S.objective.done = true; }
+  go("connected");
+}
+
+// A pretend QR code for the mock-up: real finder squares in the corners, random cells elsewhere.
+function fakeQr(seed) {
+  let s = (seed >>> 0) || 1;
+  const rnd = () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
+  let cells = "";
+  for (let r = 0; r < 21; r++) for (let c = 0; c < 21; c++) {
+    const corner = [[0, 0], [0, 14], [14, 0]].find(([y, x]) => r >= y && r < y + 7 && c >= x && c < x + 7);
+    let on;
+    if (corner) { const d = Math.max(Math.abs(r - corner[0] - 3), Math.abs(c - corner[1] - 3)); on = d === 3 || d <= 1; }
+    else if ((r === 7 && c < 8) || (r === 7 && c > 12) || (c === 7 && r < 8) || (c === 7 && r > 12) || (r === 13 && c < 8) || (c === 13 && r < 8)) on = false;
+    else on = rnd() < 0.45;
+    cells += `<i class="${on ? "on" : ""}"></i>`;
+  }
+  return cells;
+}
+setInterval(() => { if (S.screen === "qr" && S.qrMode !== "scan" && !S.qrBusy) render(); }, 5000);
+
 const ACT = {
-  go: a => { if (a === "connect") S.connectStage = 0; go(a); },
+  go: a => { if (a === "connect") S.connectStage = 0; if (a === "qr") { S.qrMode = "show"; S.qrBusy = false; } go(a); },
   scan: () => {
     const v = document.getElementById("dob").value;
     S.user.dob = v; S.user.error = ""; S.user.verified = false;
@@ -816,23 +874,18 @@ const ACT = {
   parentToggle: a => { S.parent[a] = !S.parent[a]; render(); },
   privacy: a => { S.user[a] = !S.user[a]; render(); },
   pauseAccount: () => { S.user.paused = !S.user.paused; render(); toast(S.user.paused ? `${S.user.name}'s account is paused.` : `${S.user.name}'s account is back on.`); },
-  qr: () => toast("In the real app, one phone shows a code and the other scans it."),
+  qrMode: a => { S.qrMode = a; S.qrBusy = false; render(); },
+  qrScanned: () => {
+    if (S.qrBusy) return;
+    S.qrBusy = true; render();
+    setTimeout(() => { S.qrBusy = false; connectDone(); }, 900);
+  },
   report: () => toast("Reported. The Intro safety team will review this chat."),
   connectPress: () => {
     if (S.connectStage === 1) return;
     if (S.connectStage >= 2) return go("connected");
     S.connectStage = 1; render();
-    setTimeout(() => { S.connectStage = 2; render();
-      setTimeout(() => {
-        const id = S.chatWith;
-        S.chats[id].connected = true;
-        S.chats[id].msgs.push({ from: "sys", text: "You connected in person. Details unlocked." });
-        S.lastConnected = id;
-        const m = S.matches.find(x => x.id === id);
-        if (m && S.objective) { S.objective.done = true; }
-        go("connected");
-      }, 900);
-    }, 1600);
+    setTimeout(() => { S.connectStage = 2; render(); setTimeout(connectDone, 900); }, 1600);
   },
   reqYes: a => { const r = S.requests.find(x => x.id === a); r.status = "accepted"; render(); toast(`${r.name} can now message you.`); },
   reqNo: a => { S.requests.find(x => x.id === a).status = "declined"; render(); },

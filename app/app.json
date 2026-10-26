@@ -7,7 +7,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "Intro uses Bluetooth to check your phones are next to each other when you connect in person."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +27,10 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      ["expo-camera", { "cameraPermission": "Intro uses the camera to scan the other person's code when you connect in person." }],
+      ["expo-location", { "locationWhenInUsePermission": "Intro checks you're both in the same place when you connect in person. Only the suburb is kept." }],
+      ["munim-bluetooth", { "androidBluetoothPermissions": ["scan", "advertise", "connect"] }]
     ],
     "scheme": "intro"
   }
