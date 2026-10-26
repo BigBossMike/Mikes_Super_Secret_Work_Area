@@ -19,7 +19,7 @@ export default function Welcome() {
       <View style={{ gap: 18, paddingTop: 24 }}>
         <Logo />
         <T variant="display">Real people.{"\n"}Real plans.{"\n"}<T variant="display" color={t.go}>Meet in person.</T></T>
-        <T muted>No followers, no likes, no feed. Set one plan a month and Intro finds up to five people near you who are keen to join in.</T>
+        <T muted>Got a plan that needs one more? Put a hand out. Intro introduces you to up to five people nearby who are keen too.</T>
         <View style={{ gap: 12 }}>
           {STEPS.map((s, i) => (
             <Row key={i} gap={12} style={{ alignItems: "flex-start" }}>

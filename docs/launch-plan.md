@@ -1,19 +1,18 @@
 # Intro: Brisbane launch plan (draft)
 
-## Who it's for
+## The idea
 
-**Anyone 16+ who finds it hard to make new connections.** Not the people with 1,000+ followers. Intro is for:
+**Intro puts forward a digital hand in a modern world.** It's the introduction a friend used to make for you: "you should meet so-and-so, they're keen too."
 
-- the 16 or 17 year old who'd happily play Tuesday football or see a movie if they knew someone to go with
-- the adult who'd love a midweek dinner, a walking buddy or a spot on a trivia team, but doesn't know who to ask: people new to Brisbane, empty nesters, the recently separated or widowed, retirees, shift workers, people working from home
+Everyone has plans that need one more person: a fifth player, someone to see a film with, a midweek dinner, a walking buddy, a fourth for trivia. Intro is for everyone 16+ who'd rather do the thing than wait for the right person to turn up.
 
-There are two separate groups that never mix: 16 to 17, and 18+. Within the adult group, Intro favours people closer in age.
+Two groups that never mix: 16 to 17, and 18+. Within the adult group, Intro favours people closer in age.
 
-That shapes everything:
+## How it should feel
 
-- **No popularity signals.** No followers, likes, feed or public profiles. Nobody can see how many matches or connections anyone has.
-- **Low pressure.** One plan a month, up to 5 people, the plan is clear before anyone agrees, and it's normal to bring a friend or parent to the first meet-up.
-- **Never label users.** In the app, Intro is "for meeting people to do things with", never "for lonely people". The "struggling to connect" message is for parents and community partners, not used in the app itself.
+- **Confident and everyday.** Intro is a normal, smart way to get a plan going, like booking a court or a table. All messaging leads with the plan and the people, never with a problem.
+- **Real life, not a feed.** No followers, likes, feed or public profiles. Nobody can see how many matches or connections anyone has.
+- **Easy.** One plan a month, up to 5 people, the plan is clear before anyone agrees, and it's normal to bring a friend along to the first meet-up.
 
 ## Three audiences, three messages
 
@@ -29,9 +28,9 @@ That shapes everything:
 
 ## Why parents are the engine (and a way to reach adults too)
 
-Mike's own parent network is the unfair advantage. Parents talk to other parents, sit on P&C committees, run school and club group chats, and know which kids are finding things hard. A parent-led launch also builds trust that an app with teens on it badly needs.
+Mike's own parent network is the unfair advantage. Parents talk to other parents, sit on P&C committees, and run school and club group chats. A parent-led launch also builds trust that an app with teens on it needs.
 
-Parents are adults too. Many will try it for themselves, especially empty nesters and parents new to an area, and they know other adults who'd use it.
+Parents are adults too. Many will use it for their own plans, and they'll tell other adults about it.
 
 ## Phases
 
@@ -64,24 +63,24 @@ Parents are adults too. Many will try it for themselves, especially empty nester
 
 - **Your parent network and founding parents:** word of mouth, school group chats, sideline conversations.
 - **P&C associations and school newsletters:** a short, safety-led blurb. Offer a 20-minute talk at a P&C meeting.
-- **School wellbeing staff and guidance officers:** they know which students are finding it hard. Give them a one-page explainer they can pass to parents. Don't ask schools to "endorse" it early. Just inform.
+- **Schools:** a one-page explainer for staff to pass to parents if they wish. Don't ask schools to "endorse" it early. Just inform.
 - **Sports clubs:** "short a player?" is the perfect first plan. Clubs can share it with parents.
 - **Brisbane parent Facebook groups:** posts from real parents, not ads.
 - **Youth organisations** (PCYC, Scouts, church youth groups, community centres): possible partners once the pilot shows it's safe.
 
 ### Adult channels
 
-- **Local community spaces:** libraries, community centres, neighbourhood centres and men's sheds. A poster or flyer with a QR code to the waitlist.
-- **Local Facebook and suburb groups:** "new to Brisbane", neighbourhood and interest groups.
-- **Workplaces:** HR and wellbeing teams, especially for people new to the city or working from home.
-- **Community and health partners:** later, once there's evidence it helps, for example GPs, community health services or seniors' organisations. Talk to them, but don't promise health outcomes.
+- **Local spots:** cafés, gyms, libraries and community noticeboards. A poster with a QR code and one plan on it ("Midweek dinner, anyone?").
+- **Local Facebook and suburb groups:** neighbourhood, interest and "new to Brisbane" groups.
+- **Clubs and venues:** trivia nights, running clubs and social sport. They benefit when teams fill up.
+- **Workplaces:** a simple way for staff to get plans going outside work.
 
 ### Paid social
 
 - **Parents first:** Facebook and Instagram ads to parents in Brisbane suburbs on the waitlist. Lead with safety and real-world time.
-- **Adults:** Facebook and Instagram ads in the same suburbs, led by the plan itself ("Midweek dinner, anyone?", "Walking buddy wanted"), not by loneliness.
+- **Adults:** Facebook and Instagram ads in the same suburbs, led by the plan itself ("Midweek dinner, anyone?", "Walking buddy wanted").
 - **Teens (16 to 17):** Instagram, TikTok and Snapchat ads, aimed at the pilot suburbs. Platforms limit how ads can be targeted at under-18s (usually age and location only), so keep the creative broad and lead with the activity, not the app.
-- **Creative:** real Brisbane places (local pitches, the State Library, cinemas, cafés, the riverwalk), real-looking people of all ages doing things, no "cool crowd" look. Feature "short a player", "movie buddy", "midweek dinner" and "walking buddy".
+- **Creative:** real Brisbane places (local pitches, the State Library, cinemas, cafés, the riverwalk), real-looking people of all ages out doing things. Feature "short a player", "movie buddy", "midweek dinner" and "walking buddy".
 - **Start small.** Test a few ads in one suburb, measure waitlist sign-ups, then scale what works.
 
 ## What to measure
