@@ -46,7 +46,7 @@ export default function Home() {
       )}
       <Card variant="sunk">
         <T variant="h3">Meeting someone new</T>
-        <T variant="small">Meet somewhere public the first time, and tell a friend or parent where you're going. It's fine to bring a friend along. You can report or block anyone from the chat.</T>
+        <T variant="small">Meet somewhere public the first time, and tell someone you trust where you're going. It's fine to bring a friend along. You can report or block anyone from the chat.</T>
       </Card>
     </Screen>
   );

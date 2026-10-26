@@ -3,9 +3,9 @@
 // place where a Supabase call goes in the live app (see supabase/README.md).
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useToast } from "@/components/ui";
-import { ageFrom, isMinor as minorAge } from "@/lib/age";
+import { ageBand, ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
-import { OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
+import { defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
 import { findMatches } from "@/lib/matching";
 import type { Match, Objective, ObjectiveDraft } from "@/lib/types";
 
@@ -29,17 +29,30 @@ export interface User {
 }
 export interface State {
   user: User; guardian: Guardian; plan: Plan; credits: number; used: number;
-  draft: ObjectiveDraft; objective: Objective | null; matches: Match[]; searchPhase: SearchPhase;
+  draft: ObjectiveDraft; draftEdited: boolean; objective: Objective | null; matches: Match[]; searchPhase: SearchPhase;
   chats: Record<string, Chat>; requests: IncomingRequest[]; lastConnected: string | null;
 }
 
 const MONTH = new Date().toLocaleString("en-AU", { month: "long" });
-const first = OBJECTIVE_TYPES[0];
-const REPLIES = [
-  "Hey! Yeah, keen. What position are you short?",
-  "Easy, I can play anywhere. Want me to come down Thursday to meet the team first? Toowong Sports Centre, 6pm?",
-  "Sweet, see you there. We can tap phones then.",
-];
+const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
+// Demo replies from the other person, by plan type
+const REPLIES: Record<string, string[]> = {
+  sport: [
+    "Hey! Yeah, keen. What position are you short?",
+    "Easy, I can play anywhere. Want me to come down Thursday to meet the team first? Toowong Sports Centre, 6pm?",
+    "Sweet, see you there. We can tap phones then.",
+  ],
+  dinner: [
+    "Hi! Yes, I'd really like that. Any food you're keen on?",
+    "Thai sounds great. There's a casual place on Given Terrace. Wednesday at 6:30?",
+    "Perfect, see you there. We can tap phones then.",
+  ],
+  other: [
+    "Hey! Yes, keen. What did you have in mind?",
+    "Sounds good. Want to meet somewhere public first, like a café nearby?",
+    "Great, see you there. We can tap phones then.",
+  ],
+};
 
 function initial(): State {
   return {
@@ -47,14 +60,22 @@ function initial(): State {
       times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false },
     guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
     plan: "free", credits: 0, used: 0,
-    draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group },
+    draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
     objective: null, matches: [], searchPhase: "idle", chats: {}, lastConnected: null,
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday",
-      why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" }],
+      why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
+      { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner",
+      why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" }],
   };
 }
 
 export const MONTH_NAME = MONTH;
+
+/** Requests only ever come from the same age group (16–17 or adults). */
+export function visibleRequests(s: State) {
+  const band = ageBand(s.user.age ?? ageFrom(s.user.dob) ?? 17);
+  return s.requests.filter(r => ageBand(r.age) === band);
+}
 
 export function personById(s: State, id: string) {
   const p = SAMPLE_PEOPLE.find(x => x.id === id);
@@ -101,9 +122,15 @@ function useStoreValue() {
     toggleInList(key: "interests" | "times", v: string) {
       update(s => { const l = s.user[key]; const i = l.indexOf(v); if (i >= 0) l.splice(i, 1); else l.push(v); });
     },
-    setDraft(d: Partial<ObjectiveDraft>) { update(s => { Object.assign(s.draft, d); }); },
+    setDraft(d: Partial<ObjectiveDraft>) { update(s => { Object.assign(s.draft, d); s.draftEdited = true; }); },
     pickType(id: string) {
       const t = OBJECTIVE_TYPES.find(x => x.id === id)!;
+      update(s => { s.draft = { type: t.id, text: t.text, when: t.when, where: t.where, group: t.group }; s.draftEdited = true; });
+    },
+    /** Starts a new plan from an example that suits the person's age group, unless they've already edited one. */
+    prepareDraft() {
+      if (ref.current.draftEdited) return;
+      const t = OBJECTIVE_TYPES.find(x => x.id === defaultTypeFor(ref.current.user.age ?? 17))!;
       update(s => { s.draft = { type: t.id, text: t.text, when: t.when, where: t.where, group: t.group }; });
     },
     canStart: () => ref.current.used < allowance(),
@@ -115,7 +142,7 @@ function useStoreValue() {
       const type = OBJECTIVE_TYPES.find(t => t.id === s0.draft.type)!;
       const needsOk = isMinor() && s0.guardian.approveObjectives;
       update(s => {
-        s.used++;
+        s.used++; s.draftEdited = false;
         s.objective = { ...s.draft, month: MONTH, done: false };
         s.matches = []; s.chats = {}; s.searchPhase = needsOk ? "guardian" : "finding";
       });
@@ -149,8 +176,10 @@ function useStoreValue() {
         return "blocked";
       }
       update(s => { s.chats[id].msgs.push({ from: "me", text }); });
-      if (c && c.replyIdx < REPLIES.length) {
-        const reply = REPLIES[c.replyIdx];
+      const fromMatch = ref.current.matches.some(m => m.id === id);
+      const script = REPLIES[(fromMatch && ref.current.objective?.type) || "other"] ?? REPLIES.other;
+      if (c && c.replyIdx < script.length) {
+        const reply = script[c.replyIdx];
         update(s => { s.chats[id].replyIdx++; });
         setTimeout(() => update(s => { s.chats[id]?.msgs.push({ from: "them", text: reply }); }), 1100);
       }

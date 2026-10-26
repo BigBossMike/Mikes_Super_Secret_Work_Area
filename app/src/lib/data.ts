@@ -11,11 +11,14 @@ export const SUBURBS: Record<string, [number, number]> = {
   "Kelvin Grove": [1, 3],
 };
 
-export const INTERESTS = ["Football", "Cricket", "Running", "Gym", "Dance", "Music", "Movies", "Gaming", "Art", "Study"];
+export const INTERESTS = ["Football", "Cricket", "Running", "Walking", "Gym", "Dance", "Music", "Movies", "Food", "Trivia", "Gaming", "Art", "Study"];
 export const TIMES = ["Weeknights", "Tuesday nights", "Saturdays", "Sundays"];
 export const GROUPS = ["Just me", "Me + 1 other", "Me + 2 others", "Me + 3 others", "Me + 4 others", "Me + 5 or more"];
 
 export const OBJECTIVE_TYPES: ObjectiveType[] = [
+  { id: "dinner", label: "Dinner or coffee", tags: ["Food"], text: "Someone to join me for a midweek dinner", when: "Wednesday, 6:30pm", where: "Paddington, somewhere casual", group: 0 },
+  { id: "walk", label: "Walking buddy", tags: ["Walking", "Running"], text: "A walking buddy for early mornings along the river", when: "Weekdays, 6am", where: "Toowong riverwalk", group: 0 },
+  { id: "trivia", label: "Trivia team", tags: ["Trivia", "Movies", "Music"], text: "A fourth person for our Thursday pub trivia team", when: "Thursdays, 7pm", where: "Paddington", group: 3 },
   { id: "sport", label: "Sports team", tags: ["Football", "Cricket", "Running", "Gym"], text: "A fifth player for our Tuesday night five-a-side football team", when: "Tuesdays, 7pm", where: "Toowong Sports Centre", group: 4 },
   { id: "movie", label: "Movie buddy", tags: ["Movies"], text: "Someone to see a movie with on a Saturday", when: "Saturday afternoon", where: "Event Cinemas, Indooroopilly", group: 0 },
   { id: "study", label: "Study partner", tags: ["Study"], text: "A study buddy for Maths Methods before exams", when: "Weeknights", where: "State Library", group: 0 },
@@ -23,6 +26,9 @@ export const OBJECTIVE_TYPES: ObjectiveType[] = [
   { id: "event", label: "Event partner", tags: ["Dance", "Music"], text: "Someone to go to the school formal with", when: "Fri 21 Nov, 6:30pm", where: "Brisbane City Hall", group: 0 },
   { id: "other", label: "Something else", tags: [], text: "", when: "", where: "", group: 0 },
 ];
+
+/** The default plan type shown first: everyday teen plans for 16–17, a midweek dinner for adults. */
+export const defaultTypeFor = (age: number) => (age < 18 ? "sport" : "dinner");
 
 // Fictional sample people for the demo build. Replaced by the database.
 export const SAMPLE_PEOPLE: Person[] = [
@@ -39,4 +45,9 @@ export const SAMPLE_PEOPLE: Person[] = [
   { id: "grace", name: "Grace", lastName: "Okafor", age: 20, suburb: "Spring Hill", interests: ["Study", "Running", "Movies"], times: ["Sundays"], hue: 260 },
   { id: "zoe", name: "Zoe", lastName: "Ward", age: 18, suburb: "Indooroopilly", interests: ["Dance", "Music", "Art"], times: ["Saturdays"], hue: 0 },
   { id: "ethan", name: "Ethan", lastName: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 },
+  { id: "sophie", name: "Sophie", lastName: "Grant", age: 33, suburb: "New Farm", interests: ["Food", "Walking", "Movies"], times: ["Weeknights", "Saturdays"], hue: 300 },
+  { id: "raj", name: "Raj", lastName: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35 },
+  { id: "dave", name: "Dave", lastName: "Murray", age: 47, suburb: "Paddington", interests: ["Walking", "Trivia", "Music"], times: ["Weeknights", "Sundays"], hue: 200 },
+  { id: "margaret", name: "Margaret", lastName: "Byrne", age: 58, suburb: "Toowong", interests: ["Food", "Walking", "Art"], times: ["Weeknights", "Sundays"], hue: 15 },
+  { id: "lena", name: "Lena", lastName: "Fischer", age: 36, suburb: "Kelvin Grove", interests: ["Food", "Running", "Trivia"], times: ["Weeknights"], hue: 130 },
 ];

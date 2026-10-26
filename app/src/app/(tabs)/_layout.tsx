@@ -2,12 +2,12 @@ import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { fonts, useTheme } from "@/theme";
-import { useApp } from "@/store/AppStore";
+import { useApp, visibleRequests } from "@/store/AppStore";
 
 export default function TabsLayout() {
   const t = useTheme();
   const { state } = useApp();
-  const pending = state.user.paused ? 0 : state.requests.filter(r => r.status === "pending").length;
+  const pending = state.user.paused ? 0 : visibleRequests(state).filter(r => r.status === "pending").length;
   return (
     <Tabs screenOptions={{
       headerShown: false,

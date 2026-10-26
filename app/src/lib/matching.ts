@@ -13,7 +13,8 @@ export function distanceKm(a: string, b: string): number {
 /**
  * Picks up to 5 people for an objective.
  * Rules: same age band only, never the seeker's own school when they've asked for that,
- * then score on objective fit, shared interests, free-time overlap and distance.
+ * then score on objective fit, shared interests, free-time overlap and distance,
+ * with a gentle preference for people closer in age.
  */
 export function findMatches(seeker: Seeker, type: ObjectiveType, pool: Person[], exclude: string[] = []): Match[] {
   const band = ageBand(seeker.age);
@@ -26,7 +27,8 @@ export function findMatches(seeker: Seeker, type: ObjectiveType, pool: Person[],
       const shared = p.interests.filter(i => seeker.interests.includes(i));
       const times = p.times.filter(t => seeker.times.includes(t));
       const dist = distanceKm(seeker.suburb, p.suburb);
-      const raw = fit.length * 14 + shared.length * 9 + times.length * 6 + Math.max(0, 14 - dist * 2);
+      const ageGap = Math.abs(p.age - seeker.age);
+      const raw = fit.length * 14 + shared.length * 9 + times.length * 6 + Math.max(0, 14 - dist * 2) - Math.min(20, ageGap);
       const why: string[] = [];
       if (fit.length) why.push(`Into ${fit[0].toLowerCase()}`);
       if (shared.length) why.push(`${shared.length} shared interest${shared.length > 1 ? "s" : ""}`);

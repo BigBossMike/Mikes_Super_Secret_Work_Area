@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ageBand, ageFrom } from "./age";
 import { blockedReason } from "./contactFilter";
-import { OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "./data";
+import { defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "./data";
 import { findMatches } from "./matching";
 
 const today = new Date(2026, 9, 26);
-const sport = OBJECTIVE_TYPES[0];
+const sport = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
+const dinner = OBJECTIVE_TYPES.find(t => t.id === "dinner")!;
 const teen = { age: 17, suburb: "Paddington", interests: ["Football", "Music"], times: ["Saturdays"], keepSchoolOut: true };
 
 describe("ageFrom", () => {
@@ -40,6 +41,12 @@ describe("findMatches", () => {
     const off = findMatches({ ...teen, school: "Hill State High", keepSchoolOut: false }, sport, pool).map(m => m.id);
     expect(on).not.toContain("jordan");
     expect(off).toContain("jordan");
+  });
+  it("prefers people closer in age for adults", () => {
+    const m = findMatches({ age: 55, suburb: "Toowong", interests: ["Food", "Walking"], times: ["Weeknights"], keepSchoolOut: false }, dinner, SAMPLE_PEOPLE);
+    expect(m[0].id).toBe("margaret");
+    expect(defaultTypeFor(55)).toBe("dinner");
+    expect(defaultTypeFor(16)).toBe("sport");
   });
   it("skips excluded people and ranks by score", () => {
     const m = findMatches(teen, sport, SAMPLE_PEOPLE, ["jordan"]);

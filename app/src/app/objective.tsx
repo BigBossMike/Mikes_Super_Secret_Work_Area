@@ -1,4 +1,5 @@
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { View } from "react-native";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
 import { ageBand, bandLabel } from "@/lib/age";
@@ -9,6 +10,7 @@ export default function NewObjective() {
   const { state, actions } = useApp();
   const toast = useToast();
   const d = state.draft;
+  useEffect(() => { actions.prepareDraft(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
   const typeLabel = OBJECTIVE_TYPES.find(t => t.id === d.type)?.label ?? "";
 
   const submit = () => {

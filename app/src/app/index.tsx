@@ -14,7 +14,7 @@ export default function Welcome() {
   return (
     <Screen back={false} footer={<>
       <Btn label="Get started" onPress={() => router.push("/verify")} />
-      <T variant="small" style={{ textAlign: "center" }}>16+ only. Photo ID check required.</T>
+      <T variant="small" style={{ textAlign: "center" }}>16+ only. Photo ID check required. Under-18s and adults are never matched together.</T>
     </>}>
       <View style={{ gap: 18, paddingTop: 24 }}>
         <Logo />

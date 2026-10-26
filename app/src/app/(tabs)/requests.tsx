@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { View } from "react-native";
 import { Avatar, Btn, Card, Notice, Pill, Row, Screen, T, Tag } from "@/components/ui";
-import { useApp } from "@/store/AppStore";
+import { useApp, visibleRequests } from "@/store/AppStore";
 import { fonts } from "@/theme";
 
 export default function Requests() {
@@ -9,7 +9,7 @@ export default function Requests() {
   return (
     <Screen inTabs back={false} title="Requests">
       <T variant="small">Intro thinks you'd be a good fit for these plans. They only see you if you say yes, and they're never told if you say no.</T>
-      {state.user.paused ? <Notice>You've paused being put forward. Turn it back on from Me.</Notice> : state.requests.map(r => (
+      {state.user.paused ? <Notice>You've paused being put forward. Turn it back on from Me.</Notice> : visibleRequests(state).map(r => (
         <Card key={r.id}>
           <Row gap={12} style={{ alignItems: "flex-start" }}>
             <Avatar name={r.name} hue={r.hue} />

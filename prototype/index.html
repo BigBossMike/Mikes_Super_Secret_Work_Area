@@ -231,7 +231,7 @@ ul.activity li { display: flex; flex-direction: column; gap: 2px; padding-left: 
       <button data-jump="plans">Plans</button>
     </div>
     <div class="tip"><b>Try this:</b> in a chat, type a phone number, email or Instagram handle. Intro blocks it until you've connected in person.</div>
-    <div class="tip"><b>Age bands:</b> 16 and 17 year olds are only ever matched with other 16 and 17 year olds. Change the date of birth on the ID check to see an adult's matches.</div>
+    <div class="tip"><b>Adults too:</b> on the ID check, change the date of birth to an adult one (try 1986-06-01) to see the adult version, with plans like a midweek dinner. Under-18s and adults are never matched together.</div>
     <div class="tip"><b>Ganging-up protection:</b> nobody can search for people, you only see someone once they say yes, people who pass stay anonymous, and every objective says how many people will be there.</div>
     <div class="jump"><button data-jump="reset">Start over</button></div>
   </aside>
@@ -244,10 +244,13 @@ const TODAY = new Date();
 const MONTH = TODAY.toLocaleString("en-AU", { month: "long" });
 
 const SUBURBS = { "Paddington": [0, 0], "Toowong": [-2, -3], "Spring Hill": [2, 1], "New Farm": [5, 1], "Indooroopilly": [-6, -5], "Kelvin Grove": [1, 3] };
-const INTERESTS = ["Football", "Cricket", "Running", "Gym", "Dance", "Music", "Movies", "Gaming", "Art", "Study"];
+const INTERESTS = ["Football", "Cricket", "Running", "Walking", "Gym", "Dance", "Music", "Movies", "Food", "Trivia", "Gaming", "Art", "Study"];
 const TIMES = ["Weeknights", "Tuesday nights", "Saturdays", "Sundays"];
 const OBJ_TYPES = [
   { id: "sport", label: "Sports team", tags: ["Football", "Cricket", "Running", "Gym"], text: "A fifth player for our Tuesday night five-a-side football team", when: "Tuesdays, 7pm", where: "Toowong Sports Centre", group: 4 },
+  { id: "dinner", label: "Dinner or coffee", tags: ["Food"], text: "Someone to join me for a midweek dinner", when: "Wednesday, 6:30pm", where: "Paddington, somewhere casual", group: 0 },
+  { id: "walk", label: "Walking buddy", tags: ["Walking", "Running"], text: "A walking buddy for early mornings along the river", when: "Weekdays, 6am", where: "Toowong riverwalk", group: 0 },
+  { id: "trivia", label: "Trivia team", tags: ["Trivia", "Movies", "Music"], text: "A fourth person for our Thursday pub trivia team", when: "Thursdays, 7pm", where: "Paddington", group: 3 },
   { id: "movie", label: "Movie buddy", tags: ["Movies"], text: "Someone to see a movie with on a Saturday", when: "Saturday afternoon", where: "Event Cinemas, Indooroopilly", group: 0 },
   { id: "study", label: "Study partner", tags: ["Study"], text: "A study buddy for Maths Methods before exams", when: "Weeknights", where: "State Library", group: 0 },
   { id: "gaming", label: "Gaming", tags: ["Gaming"], text: "Someone to go to a LAN night with", when: "Friday night", where: "Fortitude Valley", group: 1 },
@@ -268,13 +271,18 @@ const PEOPLE = [
   { id: "noah", name: "Noah", last: "Kim", age: 19, suburb: "Kelvin Grove", interests: ["Football", "Gaming", "Study"], times: ["Weeknights"], hue: 45 },
   { id: "grace", name: "Grace", last: "Okafor", age: 20, suburb: "Spring Hill", interests: ["Study", "Running", "Movies"], times: ["Sundays"], hue: 260 },
   { id: "zoe", name: "Zoe", last: "Ward", age: 18, suburb: "Indooroopilly", interests: ["Dance", "Music", "Art"], times: ["Saturdays"], hue: 0 },
-  { id: "ethan", name: "Ethan", last: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 }
+  { id: "ethan", name: "Ethan", last: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 },
+  { id: "sophie", name: "Sophie", last: "Grant", age: 33, suburb: "New Farm", interests: ["Food", "Walking", "Movies"], times: ["Weeknights", "Saturdays"], hue: 300 },
+  { id: "raj", name: "Raj", last: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35 },
+  { id: "dave", name: "Dave", last: "Murray", age: 47, suburb: "Paddington", interests: ["Walking", "Trivia", "Music"], times: ["Weeknights", "Sundays"], hue: 200 },
+  { id: "margaret", name: "Margaret", last: "Byrne", age: 58, suburb: "Toowong", interests: ["Food", "Walking", "Art"], times: ["Weeknights", "Sundays"], hue: 15 },
+  { id: "lena", name: "Lena", last: "Fischer", age: 36, suburb: "Kelvin Grove", interests: ["Food", "Running", "Trivia"], times: ["Weeknights"], hue: 130 }
 ];
-const REPLIES = [
-  "Hey! Yeah, keen. What position are you short?",
-  "Easy, I can play anywhere. Want me to come down Thursday to meet the team first? Toowong Sports Centre, 6pm?",
-  "Sweet, see you there. We can tap phones then."
-];
+const REPLIES = {
+  sport: ["Hey! Yeah, keen. What position are you short?", "Easy, I can play anywhere. Want me to come down Thursday to meet the team first? Toowong Sports Centre, 6pm?", "Sweet, see you there. We can tap phones then."],
+  dinner: ["Hi! Yes, I'd really like that. Any food you're keen on?", "Thai sounds great. There's a casual place on Given Terrace. Wednesday at 6:30?", "Perfect, see you there. We can tap phones then."],
+  other: ["Hey! Yes, keen. What did you have in mind?", "Sounds good. Want to meet somewhere public first, like a café nearby?", "Great, see you there. We can tap phones then."]
+};
 
 let S;
 function fresh() {
@@ -285,7 +293,8 @@ function fresh() {
     plan: "free", credits: 0, used: 0,
     objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
     matches: [], chatWith: null, chats: {}, connectStage: 0, lastConnected: null,
-    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" }],
+    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
+               { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" }],
     planNotice: "", searchPhase: 0,
     parent: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true }
   };
@@ -300,6 +309,8 @@ const av = (p, cls = "") => `<div class="av ${cls}" style="background:hsl(${p.hu
 const person = id => PEOPLE.find(p => p.id === id) || S.requests.find(r => r.id === id);
 const allowance = () => S.plan === "unlimited" ? Infinity : 1 + S.credits;
 const canStart = () => S.used < allowance();
+const myRequests = () => S.requests.filter(r => band(r.age) === band(S.user.age ?? ageFrom(S.user.dob) ?? 17));
+const draftFor = age => { const t = OBJ_TYPES.find(x => x.id === (age < 18 ? "sport" : "dinner")); return { type: t.id, text: t.text, when: t.when, where: t.where, group: t.group }; };
 const isMinor = () => (S.user.age ?? ageFrom(S.user.dob) ?? 17) < 18;
 const shown = m => m.status === "agreed" || S.chats[m.id]?.connected;
 const anon = (cls = "") => `<div class="av anon ${cls}" aria-hidden="true">?</div>`;
@@ -322,7 +333,7 @@ function findMatches() {
     const fit = p.interests.filter(i => type.tags.includes(i));
     const times = p.times.filter(t => S.user.times.includes(t));
     const dist = km(S.user.suburb, p.suburb);
-    const raw = fit.length * 14 + shared.length * 9 + times.length * 6 + Math.max(0, 14 - dist * 2);
+    const raw = fit.length * 14 + shared.length * 9 + times.length * 6 + Math.max(0, 14 - dist * 2) - Math.min(20, Math.abs(p.age - S.user.age));
     const why = [];
     if (fit.length) why.push(`Into ${fit[0].toLowerCase()}`);
     if (shared.length) why.push(`${shared.length} shared interest${shared.length > 1 ? "s" : ""}`);
@@ -396,7 +407,7 @@ const ICON = {
 
 const top = (title, backTo, extra = "") => `<div class="top">${backTo ? `<button class="back" data-act="go" data-arg="${backTo}" aria-label="Back">${ICON.back}</button>` : ""}<div class="grow"><h2>${title}</h2></div>${extra}</div>`;
 function tabs() {
-  const pending = S.requests.filter(r => r.status === "pending").length;
+  const pending = S.user.paused ? 0 : myRequests().filter(r => r.status === "pending").length;
   const t = (id, label, icon, badge) => `<button class="${S.tab === id ? "on" : ""}" data-act="go" data-arg="${id}">${icon}${label}${badge ? `<span class="badge">${badge}</span>` : ""}</button>`;
   return `<nav class="tabs">${t("home", "Home", ICON.home)}${t("requests", "Requests", ICON.req, pending)}${t("me", "Me", ICON.me)}</nav>`;
 }
@@ -485,7 +496,7 @@ const SCREENS = {
     <div class="body">
       <p class="big" style="font-size:22px">Hi ${esc(S.user.name)}.</p>
       ${card}
-      <div class="card sunk"><h3>Meeting someone new</h3><p class="small muted">Meet somewhere public the first time, and tell a friend or parent where you're going. It's fine to bring a friend along. You can report or block anyone from the chat.</p></div>
+      <div class="card sunk"><h3>Meeting someone new</h3><p class="small muted">Meet somewhere public the first time, and tell someone you trust where you're going. It's fine to bring a friend along. You can report or block anyone from the chat.</p></div>
     </div>${tabs()}</div>`;
   },
 
@@ -587,7 +598,7 @@ const SCREENS = {
   },
 
   requests: () => {
-    const rows = S.requests.map(r => {
+    const rows = myRequests().map(r => {
       const actions = r.status === "pending"
         ? `<div class="row"><button class="btn go sm" data-act="reqYes" data-arg="${r.id}">Yes, put me forward</button><button class="btn ghost sm" data-act="reqNo" data-arg="${r.id}">Not this time</button></div>`
         : r.status === "accepted" ? `<div class="row"><span class="pill yes">You said yes</span><button class="btn primary sm" data-act="chat" data-arg="${r.id}">Message</button></div>`
@@ -720,19 +731,21 @@ const ACT = {
   },
   startObjective: () => {
     if (!canStart()) { S.planNotice = `You've used your free objective for ${MONTH}. Buy one more, or go unlimited.`; return go("plans"); }
-    S.planNotice = ""; go("newObjective");
+    S.planNotice = "";
+    if (!S.draftEdited) S.draft = draftFor(S.user.age ?? 17);
+    go("newObjective");
   },
   objType: a => {
     readDraft();
     const t = OBJ_TYPES.find(x => x.id === a);
-    S.draft = { type: a, text: t.text, when: t.when, where: t.where, group: t.group };
+    S.draft = { type: a, text: t.text, when: t.when, where: t.where, group: t.group }; S.draftEdited = true;
     render();
   },
   submitObjective: () => {
     readDraft();
     if (S.draft.text.length < 8) return toast("Say a bit more about what you're looking for.");
     if (!S.user.verified) sampleState("profile");
-    S.used++;
+    S.used++; S.draftEdited = false;
     S.objective = { ...S.draft, month: MONTH, done: false };
     S.matches = findMatches(); S.chats = {}; S.chatWith = null;
     const needsOk = isMinor() && S.parent.approveObjectives;
@@ -806,8 +819,9 @@ $app.addEventListener("submit", e => {
   }
   c.msgs.push({ from: "me", text });
   render(); document.getElementById("msgIn").focus();
-  if (c.replyIdx < REPLIES.length) {
-    const id = S.chatWith, reply = REPLIES[c.replyIdx++];
+  const script = REPLIES[(S.matches.some(m => m.id === S.chatWith) && S.objective?.type) || "other"] || REPLIES.other;
+  if (c.replyIdx < script.length) {
+    const id = S.chatWith, reply = script[c.replyIdx++];
     setTimeout(() => { S.chats[id].msgs.push({ from: "them", text: reply }); if (S.screen === "chat" && S.chatWith === id) { render(); document.getElementById("msgIn")?.focus(); } }, 1100);
   }
 });

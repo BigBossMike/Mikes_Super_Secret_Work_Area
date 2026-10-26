@@ -4,7 +4,7 @@ Working name for a mobile app that helps people make real-world connections.
 
 Lots of people struggle to find someone for a specific thing: a player for the Tuesday night football team, someone to see a movie with, a study partner before exams. Social media is full of fake profiles and doesn't help you actually meet. Intro is built to get people off the app and into real life.
 
-**Who it's for:** teens and young adults who find it hard to make new connections, not the ones who already have 1,000+ followers. No followers, likes or feed. Parents are the main way in. See the [Brisbane launch plan](docs/launch-plan.md).
+**Who it's for:** anyone 16+ who finds it hard to make new connections, not the people who already have 1,000+ followers. It could be a teen short a football player or an adult who'd love a midweek dinner with someone new. 16 to 17 year olds and adults are never matched together. No followers, likes or feed. Parents are the main way in for teens. See the [Brisbane launch plan](docs/launch-plan.md).
 
 ## What's in this repo
 
