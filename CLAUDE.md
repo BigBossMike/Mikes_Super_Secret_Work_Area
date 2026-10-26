@@ -26,7 +26,7 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 | `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. In-person connect (Bluetooth and QR) in `src/handshake/`. |
 | `supabase/` | Database schema, security, matching, the connect-handshake function, seed data and tests. |
 | `prototype/index.html` | Single-file clickable mock-up (also published as a Claude artifact). |
-| `docs/` | Research, launch plan, ID checks and AI notes, and `decisions.md` (why things are the way they are). |
+| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?) and `decisions.md` (why things are the way they are). |
 
 ## Commands
 
