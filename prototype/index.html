@@ -191,6 +191,11 @@ textarea.input { resize: none; min-height: 72px; }
 .notice.warn { background: var(--warn-soft); color: var(--warn); font-weight: 600; }
 .notice.ok { background: var(--go-soft); color: var(--go-deep); font-weight: 600; }
 
+.av.anon { background: var(--sunk); color: var(--muted); border: 1.5px dashed var(--line); }
+ul.plist { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+ul.plist li.off { color: var(--muted); }
+ul.activity { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+ul.activity li { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; border-left: 2px solid var(--go); }
 .toast { position: absolute; left: 16px; right: 16px; bottom: 90px; background: var(--ink); color: var(--surface); padding: 12px 16px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 5; animation: up .25s ease-out; }
 @keyframes up { from { transform: translateY(12px); opacity: 0; } }
 .switch { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
@@ -209,11 +214,12 @@ textarea.input { resize: none; min-height: 72px; }
   <aside class="notes">
     <div class="logo">intro<i>.</i></div>
     <h1>Clickable prototype</h1>
-    <p>Tap through the app as Alex, a 17-year-old in Brisbane looking for a formal partner. Nothing here is real: no accounts, no ID upload, no payments.</p>
+    <p>Tap through the app as Alex, a 17-year-old in Brisbane whose Tuesday night football team is one player short. Nothing here is real: no accounts, no ID upload, no payments.</p>
     <div class="label">Jump to a screen</div>
     <div class="jump" id="jump">
       <button data-jump="welcome">Welcome</button>
       <button data-jump="verify">ID check</button>
+      <button data-jump="parent">Parent sign-off</button>
       <button data-jump="profile">Profile questions</button>
       <button data-jump="home">Home</button>
       <button data-jump="newObjective">New objective</button>
@@ -221,10 +227,12 @@ textarea.input { resize: none; min-height: 72px; }
       <button data-jump="chat">Chat</button>
       <button data-jump="connect">Connect</button>
       <button data-jump="requests">Being put forward</button>
+      <button data-jump="parentView">Parent app</button>
       <button data-jump="plans">Plans</button>
     </div>
     <div class="tip"><b>Try this:</b> in a chat, type a phone number, email or Instagram handle. Intro blocks it until you've connected in person.</div>
     <div class="tip"><b>Age bands:</b> 16 and 17 year olds are only ever matched with other 16 and 17 year olds. Change the date of birth on the ID check to see an adult's matches.</div>
+    <div class="tip"><b>Ganging-up protection:</b> nobody can search for people, you only see someone once they say yes, people who pass stay anonymous, and every objective says how many people will be there.</div>
     <div class="jump"><button data-jump="reset">Start over</button></div>
   </aside>
   <div class="device"><div id="app"></div></div>
@@ -239,13 +247,14 @@ const SUBURBS = { "Paddington": [0, 0], "Toowong": [-2, -3], "Spring Hill": [2, 
 const INTERESTS = ["Football", "Cricket", "Running", "Gym", "Dance", "Music", "Movies", "Gaming", "Art", "Study"];
 const TIMES = ["Weeknights", "Tuesday nights", "Saturdays", "Sundays"];
 const OBJ_TYPES = [
-  { id: "formal", label: "Formal partner", tags: ["Dance", "Music"], text: "A partner for the BGS formal", when: "Fri 21 Nov, 6:30pm", where: "Brisbane City Hall" },
-  { id: "movie", label: "Movie buddy", tags: ["Movies"], text: "Someone to see a movie with on a Saturday", when: "Saturday afternoon", where: "Event Cinemas, Indooroopilly" },
-  { id: "sport", label: "Sports team", tags: ["Football", "Cricket", "Running", "Gym"], text: "A player for our Tuesday night five-a-side football team", when: "Tuesdays, 7pm", where: "Toowong Sports Centre" },
-  { id: "study", label: "Study partner", tags: ["Study"], text: "A study buddy for Maths Methods before exams", when: "Weeknights", where: "State Library" },
-  { id: "gaming", label: "Gaming", tags: ["Gaming"], text: "Someone to go to a LAN night with", when: "Friday night", where: "Fortitude Valley" },
-  { id: "other", label: "Something else", tags: [], text: "", when: "", where: "" }
+  { id: "sport", label: "Sports team", tags: ["Football", "Cricket", "Running", "Gym"], text: "A fifth player for our Tuesday night five-a-side football team", when: "Tuesdays, 7pm", where: "Toowong Sports Centre", group: 4 },
+  { id: "movie", label: "Movie buddy", tags: ["Movies"], text: "Someone to see a movie with on a Saturday", when: "Saturday afternoon", where: "Event Cinemas, Indooroopilly", group: 0 },
+  { id: "study", label: "Study partner", tags: ["Study"], text: "A study buddy for Maths Methods before exams", when: "Weeknights", where: "State Library", group: 0 },
+  { id: "gaming", label: "Gaming", tags: ["Gaming"], text: "Someone to go to a LAN night with", when: "Friday night", where: "Fortitude Valley", group: 1 },
+  { id: "event", label: "Event partner", tags: ["Dance", "Music"], text: "Someone to go to the school formal with", when: "Fri 21 Nov, 6:30pm", where: "Brisbane City Hall", group: 0 },
+  { id: "other", label: "Something else", tags: [], text: "", when: "", where: "", group: 0 }
 ];
+const GROUPS = ["Just me", "Me + 1 other", "Me + 2 others", "Me + 3 others", "Me + 4 others", "Me + 5 or more"];
 const PEOPLE = [
   { id: "jordan", name: "Jordan", last: "Lee", age: 17, suburb: "Toowong", interests: ["Football", "Music", "Dance", "Movies"], times: ["Weeknights", "Saturdays"], hue: 152 },
   { id: "priya", name: "Priya", last: "Nair", age: 16, suburb: "Indooroopilly", interests: ["Study", "Movies", "Running", "Music"], times: ["Weeknights", "Sundays"], hue: 280 },
@@ -262,9 +271,9 @@ const PEOPLE = [
   { id: "ethan", name: "Ethan", last: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 }
 ];
 const REPLIES = [
-  "Hey! Yes, keen. Is it the one at City Hall?",
-  "Nice. Want to grab a coffee first so it's not weird on the night? Toowong Village, Saturday 10am?",
-  "Perfect, see you there. We can tap phones then."
+  "Hey! Yeah, keen. What position are you short?",
+  "Easy, I can play anywhere. Want me to come down Thursday to meet the team first? Toowong Sports Centre, 6pm?",
+  "Sweet, see you there. We can tap phones then."
 ];
 
 let S;
@@ -272,12 +281,13 @@ function fresh() {
   return {
     screen: "welcome", tab: "home", back: null,
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, verifying: false, error: "", suburb: "Paddington",
-            interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", paused: false },
+            interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", school: "", noSchool: true, paused: false },
     plan: "free", credits: 0, used: 0,
-    objective: null, draft: { type: "formal", text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where },
+    objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
     matches: [], chatWith: null, chats: {}, connectStage: 0, lastConnected: null,
-    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" }],
-    planNotice: ""
+    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" }],
+    planNotice: "", searchPhase: 0,
+    parent: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true }
   };
 }
 S = fresh();
@@ -290,6 +300,9 @@ const av = (p, cls = "") => `<div class="av ${cls}" style="background:hsl(${p.hu
 const person = id => PEOPLE.find(p => p.id === id) || S.requests.find(r => r.id === id);
 const allowance = () => S.plan === "unlimited" ? Infinity : 1 + S.credits;
 const canStart = () => S.used < allowance();
+const isMinor = () => (S.user.age ?? ageFrom(S.user.dob) ?? 17) < 18;
+const shown = m => m.status === "agreed" || S.chats[m.id]?.connected;
+const anon = (cls = "") => `<div class="av anon ${cls}" aria-hidden="true">?</div>`;
 
 function ageFrom(dob) {
   const d = new Date(dob + "T00:00:00");
@@ -313,7 +326,7 @@ function findMatches() {
     const why = [];
     if (fit.length) why.push(`Into ${fit[0].toLowerCase()}`);
     if (shared.length) why.push(`${shared.length} shared interest${shared.length > 1 ? "s" : ""}`);
-    if (times.length) why.push(`Free ${times[0].toLowerCase()}`);
+    if (times.length) why.push(`Free ${times[0] === "Weeknights" ? "weeknights" : times[0]}`);
     why.push(`${dist} km away`);
     return { id: p.id, score: Math.min(97, 52 + raw), why, dist, status: "asking" };
   }).sort((a, b) => b.score - a.score).slice(0, 5);
@@ -321,6 +334,8 @@ function findMatches() {
 
 function sampleState(upTo) {
   if (!S.user.verified) { S.user.age = ageFrom(S.user.dob) ?? 17; S.user.verified = true; }
+  if (upTo === "parent") return;
+  if (isMinor()) S.parent.status = "approved";
   if (upTo === "profile" || upTo === "verify") return;
   if (["matches", "chat", "connect"].includes(upTo) && !S.objective) {
     S.objective = { ...S.draft, month: MONTH, done: false };
@@ -393,7 +408,7 @@ const SCREENS = {
     <div class="hero">
       <div class="logo">intro<i>.</i></div>
       <h1>Real people.<br>Real plans.<br><em>Meet in person.</em></h1>
-      <p class="muted">Need a partner for the formal, someone to see a film with, or a player for Tuesday football? Set one objective a month and Intro finds up to five people near you who are keen.</p>
+      <p class="muted">One player short for Tuesday football? After a movie buddy or a study partner? Set one objective a month and Intro finds up to five people near you who are keen to join in.</p>
       <ol class="how">
         <li><span>Set your objective for the month.</span></li>
         <li><span>Up to 5 well-matched people are asked if they're happy to be put forward.</span></li>
@@ -421,19 +436,20 @@ const SCREENS = {
       ${status}
       <p class="small muted">In the real app a verification provider checks the ID. Intro stores only that you're verified and your age, never the ID photo.</p>
     </div>
-    <div class="foot"><button class="btn primary" data-act="go" data-arg="profile" ${u.verified ? "" : "disabled"}>Continue</button></div>
+    <div class="foot"><button class="btn primary" data-act="afterVerify" ${u.verified ? "" : "disabled"}>Continue</button></div>
   </div>`;
   },
 
   profile: () => {
     const u = S.user;
-    return `<div class="scr">${top("About you", "verify")}
+    return `<div class="scr">${top("About you", isMinor() ? "parent" : "verify")}
     <div class="body">
       <p class="muted">Your answers are how Intro finds good matches. Only your first name and photo are shown before you meet.</p>
       <label class="f">First name<input class="input" id="pname" value="${esc(u.name)}" maxlength="20"></label>
       <label class="f">Suburb<select class="input" id="psuburb">${Object.keys(SUBURBS).map(s => `<option ${s === u.suburb ? "selected" : ""}>${s}</option>`).join("")}</select></label>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">Things you're into</b>${chips("interests", INTERESTS, u.interests)}</div>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">When you're usually free</b>${chips("times", TIMES, u.times)}</div>
+      <label class="f">School <span class="small muted" style="font-weight:400">Optional. Lets you keep people from your school out of your matches.</span><input class="input" id="pschool" value="${esc(u.school)}" placeholder="Your school"></label>
       <label class="f">Cultural background <span class="small muted" style="font-weight:400">Optional. Private, and only used if you turn it on in an objective.</span><input class="input" id="pbg" value="${esc(u.background)}" placeholder="e.g. Samoan, Indian, Greek"></label>
     </div>
     <div class="foot"><button class="btn primary" data-act="saveProfile">Save and continue</button></div>
@@ -445,7 +461,8 @@ const SCREENS = {
     let card;
     if (!o) {
       card = `<div class="card objective"><span class="eyebrow">${MONTH} objective</span>
-        <p class="big">What do you need someone for this month?</p>
+        <p class="big">What would you like to do this month?</p>
+        <p class="muted small">Tell us the plan. We'll find up to 5 people nearby who are keen to join in.</p>
         <p class="muted small">${canStart() ? `You have ${allowance() === Infinity ? "unlimited objectives" : `${allowance() - S.used} objective${allowance() - S.used > 1 ? "s" : ""}`} left.` : "You've used this month's objective."}</p>
         <button class="btn go" data-act="startObjective">Set my objective</button></div>`;
     } else if (o.done) {
@@ -459,7 +476,7 @@ const SCREENS = {
       card = `<div class="card objective"><span class="eyebrow">${MONTH} objective</span>
         <p class="big">${esc(o.text)}</p>
         <p class="muted small">${esc(o.when)}${o.where ? " · " + esc(o.where) : ""}</p>
-        <div class="row">${S.matches.map(m => av(person(m.id), "sm")).join("")}</div>
+        <div class="row">${S.matches.map(m => shown(m) ? av(person(m.id), "sm") : anon("sm")).join("")}</div>
         <p class="small">${c("agreed") + c("connected")} agreed · ${c("asking")} deciding · ${c("passed")} passed</p>
         <button class="btn go" data-act="go" data-arg="matches">See people</button></div>`;
     }
@@ -478,10 +495,11 @@ const SCREENS = {
     <div class="body">
       <div style="display:flex;flex-direction:column;gap:8px"><b class="small">What kind of thing?</b>
         <div class="chips">${OBJ_TYPES.map(t => `<button class="chip ${d.type === t.id ? "on" : ""}" data-act="objType" data-arg="${t.id}" aria-pressed="${d.type === t.id}">${t.label}</button>`).join("")}</div></div>
-      <label class="f">I'm looking for…<textarea class="input" id="otext" maxlength="120" placeholder="Describe what you need">${esc(d.text)}</textarea></label>
+      <label class="f">What's the plan?<textarea class="input" id="otext" maxlength="120" placeholder="e.g. A fifth player for Tuesday five-a-side">${esc(d.text)}</textarea></label>
       <label class="f">When<input class="input" id="owhen" value="${esc(d.when)}" placeholder="e.g. Saturday afternoon"></label>
       <label class="f">Where<input class="input" id="owhere" value="${esc(d.where)}" placeholder="e.g. Toowong"></label>
-      <p class="small muted">Intro asks up to 5 people in your age group (${band(S.user.age ?? 17)}). They see your first name, photo and this objective. Nobody else does.</p>
+      <label class="f">Who'll be there?<select class="input" id="ogroup">${GROUPS.map((g, i) => `<option value="${i}" ${d.group === i ? "selected" : ""}>${g}</option>`).join("")}</select><span class="small muted" style="font-weight:400">The people we ask see this, so nobody walks into a surprise group.</span></label>
+      <p class="small muted">Intro asks up to 5 people in your age group (${band(S.user.age ?? 17)}). They see your first name, photo and this objective. Nobody else does.${isMinor() && S.parent.approveObjectives ? ` ${esc(S.parent.name)} gets a quick request to OK it first.` : ""}</p>
     </div>
     <div class="foot"><button class="btn go" data-act="submitObjective">Find people</button></div>
   </div>`;
@@ -489,14 +507,18 @@ const SCREENS = {
 
   searching: () => `<div class="scr"><div class="body searching">
     <div class="radar"><div class="logo">intro<i>.</i></div></div>
-    <p class="big" style="font-size:18px">Finding people near ${esc(S.user.suburb)}…</p>
-    <p class="small muted">Checking interests, free time and distance.</p></div></div>`,
+    ${S.searchPhase === 1 ? `<p class="big" style="font-size:18px">Waiting for ${esc(S.parent.name)} to OK your objective…</p>
+    <p class="small muted">Usually takes a few minutes. Sped up for the demo.</p>` : `<p class="big" style="font-size:18px">Finding people near ${esc(S.user.suburb)}…</p>
+    <p class="small muted">Checking interests, free time and distance.</p>`}</div></div>`,
 
   matches: () => {
     if (!S.objective) return SCREENS.home();
     const rows = S.matches.map(m => {
       const p = person(m.id);
       const st = S.chats[m.id]?.connected ? "connected" : m.status;
+      if (!shown(m)) return `<div class="card"><div class="person">${anon()}<div class="grow">
+        <div class="row" style="justify-content:space-between"><span class="name">${st === "passed" ? "Not this time" : "Someone nearby"}</span>${statusPill(st)}</div>
+        <p class="small muted">${st === "passed" ? "They passed. You won't find out who it was." : "You'll see who they are if they say yes."}</p></div></div></div>`;
       const action = st === "agreed" ? `<button class="btn primary sm" data-act="chat" data-arg="${m.id}">Message</button>`
         : st === "connected" ? `<button class="btn ghost sm" data-act="chat" data-arg="${m.id}">View</button>` : "";
       return `<div class="card"><div class="person">${av(p)}<div class="grow">
@@ -504,10 +526,10 @@ const SCREENS = {
         <div class="row wrap"><span class="score">${m.score}% match</span>${m.why.map(w => `<span class="tag">${esc(w)}</span>`).join("")}</div>
         ${action ? `<div>${action}</div>` : ""}</div></div></div>`;
     }).join("");
-    return `<div class="scr">${top("Your people", "home")}
+    return `<div class="scr">${top("Your matches", "home")}
     <div class="body">
       <div class="card sunk"><span class="eyebrow">Objective</span><p style="font-weight:600">${esc(S.objective.text)}</p></div>
-      <p class="small muted">We've asked these ${S.matches.length} people if they're happy to be put forward. People who pass are never told who asked.</p>
+      <p class="small muted">We've asked ${S.matches.length} people if they're happy to be put forward. You only see who they are once they say yes.</p>
       ${rows}
     </div>${tabs()}</div>`;
   },
@@ -542,7 +564,8 @@ const SCREENS = {
       <p class="big" style="font-size:18px">Together in person?<br>Hold your phones close and both press Connect.</p>
       <button class="bigbtn ${st === 1 ? "busy" : ""}" data-act="connectPress" aria-label="Connect">${st >= 2 ? "DONE" : "CONNECT"}</button>
       <div class="both"><div>${av({ name: S.user.name, hue: 210 }, "sm")}<b>You</b>${you}</div><div>${av(p, "sm")}<b>${esc(p.name)}</b>${them}</div></div>
-      <p class="small muted">Works only when both phones are within a few centimetres, so details can't be swapped remotely.</p>
+      <p class="small muted">Bluetooth checks the two phones are right next to each other, so details can't be swapped remotely.</p>
+      <button class="btn ghost sm" data-act="qr">Use a QR code instead</button>
     </div></div>`;
   },
 
@@ -558,6 +581,7 @@ const SCREENS = {
         <dl class="unlocked"><dt>Name</dt><dd>${esc(p.name)} ${esc(last)}</dd><dt>Mobile</dt><dd>0491 570 156</dd><dt>Instagram</dt><dd>@${esc(p.name.toLowerCase())}.${esc(last.toLowerCase())}.example</dd></dl>
         <p class="small muted">Example details. The 0491 570 number is from the range reserved for fiction.</p></div>
       <div class="notice ok" style="width:100%">Objective complete. That's it from us. Put the phone away and enjoy it.</div>
+      ${isMinor() && S.parent.notifyConnect ? `<p class="small muted">${esc(S.parent.name)} has been told you connected with ${esc(p.name)}.</p>` : ""}
     </div>
     <div class="foot"><button class="btn primary" data-act="go" data-arg="home">Back to home</button></div></div>`;
   },
@@ -571,7 +595,8 @@ const SCREENS = {
       return `<div class="card"><div class="person">${av(r)}<div class="grow">
         <span class="name">${esc(r.name)}, ${r.age}</span>
         <p class="small muted">is looking for</p><p style="font-weight:600">${esc(r.text)}</p>
-        <div class="row wrap">${r.why.map(w => `<span class="tag">${esc(w)}</span>`).join("")}</div>${actions}</div></div></div>`;
+        <div class="row wrap">${r.why.map(w => `<span class="tag">${esc(w)}</span>`).join("")}</div>
+        <p class="small"><b>Who'll be there:</b> ${esc(r.name)}${r.group ? ` + ${r.group} other${r.group > 1 ? "s" : ""}` : " only"}</p>${actions}</div></div></div>`;
     }).join("");
     return `<div class="scr">${top("Requests", null)}
     <div class="body">
@@ -590,9 +615,54 @@ const SCREENS = {
         <button class="btn ghost sm" data-act="go" data-arg="profile">Edit my answers</button></div>
       <div class="card"><div class="switch"><div><h3>Can be put forward</h3><p class="small muted">Turn off to stop appearing in other people's matches.</p></div>
         <button class="toggle ${u.paused ? "" : "on"}" data-act="pause" aria-pressed="${!u.paused}" aria-label="Can be put forward"></button></div></div>
+      <div class="card"><div class="switch"><div><h3>Keep my school out</h3><p class="small muted">Don't match me with people from ${u.school ? esc(u.school) : "my school"}.</p></div>
+        <button class="toggle ${u.noSchool ? "on" : ""}" data-act="noSchool" aria-pressed="${u.noSchool}" aria-label="Keep my school out"></button></div></div>
+      ${isMinor() ? `<div class="card"><h3>Parent controls</h3><p class="small muted">Linked to ${esc(S.parent.name)} (${esc(S.parent.rel)}). Their settings:</p>
+        <ul class="plist small">${[["approveObjectives", "Approve each objective first"], ["notifyConnect", "Get a message when you connect with someone"], ["meetCheckin", "Ask where and when you're meeting"]].map(([k, l]) => `<li class="${S.parent[k] ? "" : "off"}">${l}${S.parent[k] ? "" : " (off)"}</li>`).join("")}</ul>
+        <p class="small muted">Your chats stay private. ${esc(S.parent.name)} can't read them.</p>
+        <button class="btn ghost sm" data-act="go" data-arg="parentView">See what ${esc(S.parent.name)} sees</button></div>` : ""}
       <div class="card"><h3>Plan</h3><p class="small muted">${S.plan === "unlimited" ? "Unlimited objectives, $10 a month." : `Free: 1 objective a month${S.credits ? ` plus ${S.credits} extra` : ""}.`}</p>
         <button class="btn ghost sm" data-act="go" data-arg="plans">Change plan</button></div>
     </div>${tabs()}</div>`;
+  },
+
+  parent: () => {
+    const P = S.parent;
+    const status = P.status === "sent" ? `<div class="notice">Waiting for ${esc(P.name)} to approve…</div>`
+      : P.status === "approved" ? `<div class="notice ok">${esc(P.name)} approved your account.</div>` : "";
+    return `<div class="scr">${top("Parent or guardian", "verify")}
+    <div class="body">
+      <p class="muted">You're under 18, so a parent or guardian needs to OK your account. They get the free Intro parent app.</p>
+      <label class="f">Their first name<input class="input" id="parName" value="${esc(P.name)}" maxlength="20"></label>
+      <label class="f">They're your<select class="input" id="parRel">${["Mum", "Dad", "Guardian"].map(r => `<option ${r === P.rel ? "selected" : ""}>${r}</option>`).join("")}</select></label>
+      <label class="f">Their mobile<input class="input" id="parPhone" value="${esc(P.phone)}" inputmode="tel"></label>
+      <button class="btn ghost sm" data-act="parentSend" ${P.status === "sent" ? "disabled" : ""}>Send request (demo)</button>
+      ${status}
+      <div class="card sunk"><h3>What they can see</h3><p class="small muted">The objectives you set (they can approve them first), who you connect with and where, and any safety reports.</p>
+        <h3>What they can't see</h3><p class="small muted">Your chats.</p></div>
+    </div>
+    <div class="foot"><button class="btn primary" data-act="go" data-arg="profile" ${P.status === "approved" ? "" : "disabled"}>Continue</button></div></div>`;
+  },
+
+  parentView: () => {
+    const P = S.parent, u = S.user, o = S.objective;
+    const items = [];
+    if (o) items.push([o.done ? "Finished an objective" : "Set an objective", `${o.text} · ${GROUPS[o.group ?? 0]}`]);
+    S.matches.filter(m => m.status === "agreed").forEach(m => { const p = person(m.id); items.push([`Matched with ${p.name}, ${p.age}`, `${p.suburb} · ID verified`]); });
+    Object.keys(S.chats).filter(id => S.chats[id].connected).forEach(id => items.push([`Met ${person(id).name} in person`, o?.where || "Place shared"]));
+    S.requests.filter(r => r.status === "accepted").forEach(r => items.push([`Said yes to ${r.name}'s objective`, r.text]));
+    const tg = (key, label, sub) => `<div class="switch"><div><b>${label}</b><p class="small muted">${sub}</p></div><button class="toggle ${P[key] ? "on" : ""}" data-act="parentToggle" data-arg="${key}" aria-pressed="${P[key]}" aria-label="${label}"></button></div>`;
+    return `<div class="scr">${top("Parent app", "me", `<span class="pill wait">${esc(P.name)}</span>`)}
+    <div class="body">
+      <div class="person">${av({ name: u.name, hue: 210 })}<div class="grow"><span class="name">${esc(u.name)}, ${u.age ?? 17}</span><span class="small muted">ID verified · ${esc(u.suburb)}${u.paused ? " · Paused" : ""}</span></div></div>
+      <div class="card"><h3>Controls</h3>
+        ${tg("approveObjectives", "Approve objectives first", `Check each plan before Intro asks anyone.`)}
+        ${tg("notifyConnect", `Tell me when ${esc(u.name)} meets someone`, "Who, when and roughly where.")}
+        ${tg("meetCheckin", "Meet-up check-in", `${esc(u.name)} shares the place and time before meeting.`)}</div>
+      <div class="card"><h3>Recent activity</h3>${items.length ? `<ul class="activity">${items.map(([a, b]) => `<li><b>${esc(a)}</b><span class="small muted">${esc(b)}</span></li>`).join("")}</ul>` : `<p class="small muted">Nothing yet.</p>`}</div>
+      <div class="notice">You can't read ${esc(u.name)}'s chats. If anyone reports a problem involving ${esc(u.name)}, you're told straight away.</div>
+      <button class="btn ghost" data-act="pauseAccount">${u.paused ? "Turn back on" : "Pause"} ${esc(u.name)}'s account</button>
+    </div></div>`;
   },
 
   plans: () => {
@@ -620,7 +690,7 @@ function render() {
 
 function readDraft() {
   const t = document.getElementById("otext"), w = document.getElementById("owhen"), h = document.getElementById("owhere");
-  if (t) { S.draft.text = t.value.trim(); S.draft.when = w.value.trim(); S.draft.where = h.value.trim(); }
+  if (t) { S.draft.text = t.value.trim(); S.draft.when = w.value.trim(); S.draft.where = h.value.trim(); S.draft.group = Number(document.getElementById("ogroup").value); }
 }
 
 const ACT = {
@@ -644,7 +714,7 @@ const ACT = {
     const name = document.getElementById("pname").value.trim();
     if (!name) return toast("Add your first name.");
     if (S.user.interests.length < 2) return toast("Pick at least 2 things you're into.");
-    S.user.name = name; S.user.suburb = document.getElementById("psuburb").value; S.user.background = document.getElementById("pbg").value.trim();
+    S.user.name = name; S.user.suburb = document.getElementById("psuburb").value; S.user.background = document.getElementById("pbg").value.trim(); S.user.school = document.getElementById("pschool").value.trim();
     if (!S.user.verified) sampleState("profile");
     go("home");
   },
@@ -655,7 +725,7 @@ const ACT = {
   objType: a => {
     readDraft();
     const t = OBJ_TYPES.find(x => x.id === a);
-    S.draft = { type: a, text: t.text, when: t.when, where: t.where };
+    S.draft = { type: a, text: t.text, when: t.when, where: t.where, group: t.group };
     render();
   },
   submitObjective: () => {
@@ -665,7 +735,10 @@ const ACT = {
     S.used++;
     S.objective = { ...S.draft, month: MONTH, done: false };
     S.matches = findMatches(); S.chats = {}; S.chatWith = null;
+    const needsOk = isMinor() && S.parent.approveObjectives;
+    S.searchPhase = needsOk ? 1 : 0;
     go("searching");
+    if (needsOk) setTimeout(() => { S.searchPhase = 0; if (S.screen === "searching") render(); toast(`${S.parent.name} approved your objective.`); }, 1600);
     setTimeout(() => {
       go("matches");
       const plan = ["agreed", "agreed", "asking", "passed", "agreed"];
@@ -674,9 +747,21 @@ const ACT = {
         if (S.screen === "matches" || S.screen === "home") render();
       }, 900 + i * 700));
       setTimeout(() => { if (S.matches[2]) { S.matches[2].status = "agreed"; if (S.screen === "matches") render(); } }, 7000);
-    }, 1800);
+    }, needsOk ? 3400 : 1800);
   },
   chat: a => openChat(a),
+  afterVerify: () => go(isMinor() ? "parent" : "profile"),
+  parentSend: () => {
+    const n = document.getElementById("parName").value.trim();
+    if (!n) return toast("Add their first name.");
+    S.parent.name = n; S.parent.rel = document.getElementById("parRel").value; S.parent.phone = document.getElementById("parPhone").value.trim();
+    S.parent.status = "sent"; render();
+    setTimeout(() => { S.parent.status = "approved"; if (S.screen === "parent") render(); }, 1400);
+  },
+  parentToggle: a => { S.parent[a] = !S.parent[a]; render(); },
+  noSchool: () => { S.user.noSchool = !S.user.noSchool; render(); },
+  pauseAccount: () => { S.user.paused = !S.user.paused; render(); toast(S.user.paused ? `${S.user.name}'s account is paused.` : `${S.user.name}'s account is back on.`); },
+  qr: () => toast("In the real app, one phone shows a code and the other scans it."),
   report: () => toast("Reported. The Intro safety team will review this chat."),
   connectPress: () => {
     if (S.connectStage === 1) return;
