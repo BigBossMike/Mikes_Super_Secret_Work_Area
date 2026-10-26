@@ -43,7 +43,7 @@ When changing a matching or privacy rule, change it in all three places (`app/sr
 
 ## Next steps
 
-1. Create a Supabase project, run the migration, and connect the app store to it.
+1. Create the Supabase project (supabase/README.md, "Setting it up") and run the app live against it. The app side is wired (app/src/backend, app/src/store/LiveStore.tsx) but has only been typechecked, never run against a real project.
 2. Choose an ID check provider.
 3. Test the Bluetooth connect on two real phones. The code and the QR fallback are built (`app/src/handshake/`), but Bluetooth needs a development build (`npx expo run:android`, `npx expo run:ios` or EAS Build) and tuning of the signal and distance limits.
 4. Set up in-app purchases.

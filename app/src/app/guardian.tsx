@@ -1,5 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
+import { LIVE } from "@/backend/client";
 import { Btn, Card, Chips, Field, Notice, Screen, T } from "@/components/ui";
 import { useApp, type Guardian } from "@/store/AppStore";
 
@@ -11,15 +12,15 @@ export default function GuardianSignOff() {
   const [phone, setPhone] = useState(g.phone);
 
   return (
-    <Screen title="Parent or guardian" footer={<Btn label="Continue" disabled={g.status !== "approved"} onPress={() => router.push("/profile")} />}>
+    <Screen title="Parent or guardian" footer={<Btn label="Continue" disabled={g.status !== "approved"} onPress={() => router.replace(LIVE ? "/home" : "/profile")} />}>
       <T muted>You're under 18, so a parent or guardian needs to OK your account. They get the free Intro parent app.</T>
       <Field label="Their first name" value={name} onChangeText={setName} maxLength={20} />
       <T variant="label">They're your</T>
       <Chips options={["Mum", "Dad", "Guardian"]} selected={[rel]} onToggle={v => setRel(v as Guardian["rel"])} />
       <Field label="Their mobile" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-      <Btn small variant="ghost" label="Send request (demo)" disabled={!name.trim() || g.status === "sent"}
+      <Btn small variant="ghost" label={LIVE ? "Send request" : "Send request (demo)"} disabled={!name.trim() || !phone.trim() || g.status === "sent"}
         onPress={() => actions.sendGuardianRequest({ name: name.trim(), rel, phone: phone.trim() })} />
-      {g.status === "sent" && <Notice>Waiting for {g.name} to approve…</Notice>}
+      {g.status === "sent" && <Notice>{LIVE ? `Waiting for ${g.name}. Ask them to sign in to Intro with ${g.phone} and approve you.` : `Waiting for ${g.name} to approve…`}</Notice>}
       {g.status === "approved" && <Notice kind="ok">{g.name} approved your account.</Notice>}
       <Card variant="sunk">
         <T variant="h3">What they can see</T>

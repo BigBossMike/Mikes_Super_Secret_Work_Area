@@ -26,7 +26,7 @@ export default function ChatScreen() {
     <Screen scroll={false}
       title={<Row gap={10}><Avatar name={p.name} hue={p.hue} size={34} /><View><T variant="title">{p.name}</T>
         <Row gap={4}><Ionicons name={c.connected ? "checkmark" : "lock-closed"} size={11} color={t.muted} /><T variant="small">{c.connected ? "Connected" : "Details locked"}</T></Row></View></Row>}
-      right={<Btn small variant="ghost" label="Report" onPress={actions.report} />}
+      right={<Btn small variant="ghost" label="Report" onPress={() => actions.report(id)} />}
       footer={<>
         {c.connected
           ? <Btn variant="ghost" label={`See ${p.name}'s details`} onPress={() => router.push(`/connected/${id}`)} />

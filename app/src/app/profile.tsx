@@ -1,6 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
+import { LIVE } from "@/backend/client";
 import { AgeRange } from "@/components/AgeRange";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
 import { ageRangeLimits, effectiveAgeRange, isMinor } from "@/lib/age";
@@ -19,16 +20,25 @@ export default function Profile() {
   const adult = u.age !== null && !isMinor(u.age);
   const [range, setRange] = useState(effectiveAgeRange(u.age ?? 17, u.ageMin ?? undefined, u.ageMax ?? undefined));
 
-  const save = () => {
+  const [saving, setSaving] = useState(false);
+
+  const save = async () => {
     if (!name.trim()) return toast("Add your first name.");
     if (u.interests.length < 2) return toast("Pick at least 2 things you're into.");
-    actions.saveProfile({ name: name.trim(), suburb, school: school.trim(), background: background.trim(), workplace: workplace.trim() });
-    if (adult) actions.setAgeRange(range[0], range[1]);
-    router.replace("/home");
+    setSaving(true);
+    const ok = await actions.saveProfile({
+      name: name.trim(), suburb, school: school.trim(), background: background.trim(), workplace: workplace.trim(),
+      ...(adult ? { ageMin: range[0], ageMax: range[1] } : {}),
+    });
+    setSaving(false);
+    if (!ok) return;
+    // Live: under-18s do the parent sign-off after the profile exists.
+    const needsParent = LIVE && u.age !== null && isMinor(u.age) && state.guardian.status !== "approved";
+    router.replace(needsParent ? "/guardian" : "/home");
   };
 
   return (
-    <Screen title="About you" footer={<Btn label="Save and continue" onPress={save} />}>
+    <Screen title="About you" footer={<Btn label={saving ? "Saving…" : "Save and continue"} disabled={saving} onPress={save} />}>
       <T muted>Your answers are how Intro finds good matches. Only your first name and photo are shown before you meet.</T>
       <Field label="First name" value={name} onChangeText={setName} maxLength={20} />
       <View style={{ gap: 8 }}><T variant="label">Suburb</T><Chips options={Object.keys(SUBURBS)} selected={[suburb]} onToggle={setSuburb} /></View>

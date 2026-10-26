@@ -1,47 +1,21 @@
-// App state for the demo build.
-// Everything here runs on the phone with sample people. Each action is the
-// place where a Supabase call goes in the live app (see supabase/README.md).
-import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
+// The demo store: everything runs on the phone with sample people and a
+// pretend other side. The live store (LiveStore.tsx) talks to Supabase.
+// AppProvider picks one: live when the Supabase settings are set (see
+// backend/client.ts), otherwise the demo.
+import { ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import { LIVE } from "@/backend/client";
 import { useToast } from "@/components/ui";
-import { ageFrom, agesCompatible, isMinor as minorAge } from "@/lib/age";
+import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
 import { DEMO_CONTACT_IDS, defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
 import { findMatches } from "@/lib/matching";
-import type { Match, Objective, ObjectiveDraft } from "@/lib/types";
+import type { Match } from "@/lib/types";
+import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
+import { LiveProvider } from "./LiveStore";
 
-export type Plan = "free" | "unlimited";
-export type SearchPhase = "idle" | "guardian" | "finding" | "done";
+export { MONTH_NAME, personById, useApp, visibleRequests } from "./context";
+export type { Actions, Chat, ChatMessage, Guardian, IncomingRequest, Plan, PrivacyKey, SearchPhase, State, Store, User } from "./context";
 
-export interface ChatMessage { from: "me" | "them" | "sys" | "blocked"; text: string }
-export interface Chat { msgs: ChatMessage[]; replyIdx: number; connected: boolean }
-export interface IncomingRequest {
-  id: string; name: string; age: number; suburb: string; hue: number; group: number;
-  text: string; why: string[]; status: "pending" | "accepted" | "declined";
-}
-export interface Guardian {
-  name: string; rel: "Mum" | "Dad" | "Guardian"; phone: string; status: "none" | "sent" | "approved";
-  approveObjectives: boolean; notifyConnect: boolean; meetCheckin: boolean;
-}
-export interface User {
-  name: string; dob: string; age: number | null; verified: boolean; suburb: string;
-  interests: string[]; times: string[]; school: string; background: string;
-  keepSchoolOut: boolean; paused: boolean;
-  workplace: string; keepWorkplaceOut: boolean;
-  /** Never pair me with people in my phone contacts (and hide me from them). */
-  hideContacts: boolean;
-  /** Notifications say only "Intro: you have an update". */
-  discreet: boolean;
-  /** Adults only: ages I'm happy to be paired with. Null means the default, my age ±10. */
-  ageMin: number | null; ageMax: number | null;
-}
-export type PrivacyKey = "keepSchoolOut" | "keepWorkplaceOut" | "hideContacts" | "discreet";
-export interface State {
-  user: User; guardian: Guardian; plan: Plan; credits: number; used: number;
-  draft: ObjectiveDraft; draftEdited: boolean; objective: Objective | null; matches: Match[]; searchPhase: SearchPhase;
-  chats: Record<string, Chat>; requests: IncomingRequest[]; lastConnected: string | null;
-}
-
-const MONTH = new Date().toLocaleString("en-AU", { month: "long" });
 const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
 // Demo replies from the other person, by plan type
 const REPLIES: Record<string, string[]> = {
@@ -77,25 +51,11 @@ function initial(): State {
       why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
       { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river",
       why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
+    session: "in", hasProfile: true,
   };
 }
 
-export const MONTH_NAME = MONTH;
-
-/** Requests follow the same rule as matches: both people inside each other's age range. */
-export function visibleRequests(s: State) {
-  const me = { age: s.user.age ?? ageFrom(s.user.dob) ?? 17, ageMin: s.user.ageMin ?? undefined, ageMax: s.user.ageMax ?? undefined };
-  return s.requests.filter(r => agesCompatible(me, { age: r.age }));
-}
-
-export function personById(s: State, id: string) {
-  const p = SAMPLE_PEOPLE.find(x => x.id === id);
-  if (p) return p;
-  const r = s.requests.find(x => x.id === id);
-  return r ? { id: r.id, name: r.name, lastName: "Taylor", age: r.age, suburb: r.suburb, interests: [], times: [], hue: r.hue } : undefined;
-}
-
-function useStoreValue() {
+function useDemoStore(): Store {
   const toast = useToast();
   const [state, setState] = useState<State>(initial);
   const ref = useRef(state);
@@ -112,10 +72,11 @@ function useStoreValue() {
 
   const isMinor = () => minorAge(ref.current.user.age ?? ageFrom(ref.current.user.dob) ?? 17);
   const allowance = () => (ref.current.plan === "unlimited" ? Infinity : 1 + ref.current.credits);
+  const personName = (s: State, id: string) => SAMPLE_PEOPLE.find(x => x.id === id)?.name ?? s.requests.find(x => x.id === id)?.name ?? "They";
 
-  const actions = {
-    /** Live app: hand off to the ID verification provider, then read back the verified age. */
-    verify(dob: string): Promise<{ ok: true; age: number } | { ok: false; error: string }> {
+  const actions: Actions = {
+    /** Demo: a pretend ID scan. Live: see LiveStore. */
+    verify(dob: string) {
       const age = ageFrom(dob);
       if (age === null) return Promise.resolve({ ok: false, error: "Enter your date of birth as YYYY-MM-DD." });
       if (age < 16) return Promise.resolve({ ok: false, error: `Intro is for people aged 16 and over. Your ID shows you're ${age}.` });
@@ -124,17 +85,16 @@ function useStoreValue() {
         res({ ok: true, age });
       }, 1400));
     },
-    /** Live app: text the parent a link to the parent app. */
     sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "phone">) {
       update(s => { Object.assign(s.guardian, g); s.guardian.status = "sent"; });
       setTimeout(() => update(s => { s.guardian.status = "approved"; }), 1400);
     },
-    saveProfile(p: Partial<User>) { update(s => { Object.assign(s.user, p); }); },
-    toggleInList(key: "interests" | "times", v: string) {
+    saveProfile(p: Partial<User>) { update(s => { Object.assign(s.user, p); }); return Promise.resolve(true); },
+    toggleInList(key, v) {
       update(s => { const l = s.user[key]; const i = l.indexOf(v); if (i >= 0) l.splice(i, 1); else l.push(v); });
     },
-    setDraft(d: Partial<ObjectiveDraft>) { update(s => { Object.assign(s.draft, d); s.draftEdited = true; }); },
-    pickType(id: string) {
+    setDraft(d) { update(s => { Object.assign(s.draft, d); s.draftEdited = true; }); },
+    pickType(id) {
       const t = OBJECTIVE_TYPES.find(x => x.id === id)!;
       update(s => { s.draft = { type: t.id, text: t.text, when: t.when, where: t.where, group: t.group }; s.draftEdited = true; });
     },
@@ -147,14 +107,13 @@ function useStoreValue() {
     canStart: () => ref.current.used < allowance(),
     objectivesLeft: () => allowance() - ref.current.used,
     isMinor,
-    /** Live app: insert the objective; the server runs find_matches and sends the requests. */
     submitObjective() {
       const s0 = ref.current;
       const type = OBJECTIVE_TYPES.find(t => t.id === s0.draft.type)!;
       const needsOk = isMinor() && s0.guardian.approveObjectives;
       update(s => {
         s.used++; s.draftEdited = false;
-        s.objective = { ...s.draft, month: MONTH, done: false };
+        s.objective = { ...s.draft, month: MONTH_NAME, done: false };
         s.matches = []; s.chats = {}; s.searchPhase = needsOk ? "guardian" : "finding";
       });
       if (needsOk) setTimeout(() => { update(s => { s.searchPhase = "finding"; }); toast(`${s0.guardian.name} approved your objective.`); }, 1600);
@@ -172,18 +131,17 @@ function useStoreValue() {
         setTimeout(() => update(s => { if (s.matches[2]?.status === "asking") s.matches[2].status = "agreed"; }), 7000);
       }, needsOk ? 3400 : 1800);
     },
-    openChat(id: string) {
+    openChat(id) {
       update(s => {
         if (s.chats[id]) return;
-        const p = personById(s, id)!;
+        const name = personName(s, id);
         s.chats[id] = { replyIdx: 0, connected: false, msgs: [
-          { from: "sys", text: `${p.name} agreed to be put forward. You can see each other's first name and photo.` },
+          { from: "sys", text: `${name} agreed to be put forward. You can see each other's first name and photo.` },
           { from: "them", text: `Hi ${s.user.name}! Happy to be put forward. What's the plan?` },
         ] };
       });
     },
-    /** Live app: insert into messages; the server rejects contact details too. */
-    sendMessage(id: string, text: string): "sent" | "blocked" {
+    sendMessage(id, text) {
       const c = ref.current.chats[id];
       const what = c?.connected ? null : blockedReason(text);
       if (what) {
@@ -200,8 +158,7 @@ function useStoreValue() {
       }
       return "sent";
     },
-    /** Live app: called once the connect-handshake function confirms both phones. */
-    completeConnect(id: string) {
+    completeConnect(id) {
       update(s => {
         s.chats[id].connected = true;
         s.chats[id].msgs.push({ from: "sys", text: "You connected in person. Details unlocked." });
@@ -210,32 +167,30 @@ function useStoreValue() {
       });
     },
     report() { toast("Reported. The Intro safety team will review this chat."); },
-    answerRequest(id: string, yes: boolean) {
+    answerRequest(id, yes) {
       update(s => { const r = s.requests.find(x => x.id === id); if (r) r.status = yes ? "accepted" : "declined"; });
       if (yes) toast(`${ref.current.requests.find(x => x.id === id)?.name} can now message you.`);
     },
-    setPaused(v: boolean) { update(s => { s.user.paused = v; }); },
-    setPrivacy(k: PrivacyKey, v: boolean) { update(s => { s.user[k] = v; }); },
-    setAgeRange(min: number, max: number) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); },
-    setGuardianSetting(k: "approveObjectives" | "notifyConnect" | "meetCheckin", v: boolean) { update(s => { s.guardian[k] = v; }); },
+    setPaused(v) { update(s => { s.user.paused = v; }); },
+    setPrivacy(k, v) { update(s => { s.user[k] = v; }); },
+    setAgeRange(min, max) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); },
+    setGuardianSetting(k, v) { update(s => { s.guardian[k] = v; }); },
     buyOne() { update(s => { s.credits++; }); toast("Added 1 objective (demo, no charge)."); },
-    setPlan(p: Plan) { update(s => { s.plan = p; }); toast(p === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); },
+    setPlan(p) { update(s => { s.plan = p; }); toast(p === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); },
     reset() { setState(initial()); },
+    sendSignInCode: phone => Promise.resolve(phone),
+    checkSignInCode: () => Promise.resolve({ hasProfile: true }),
+    refresh: () => Promise.resolve({ hasProfile: true }),
   };
 
   return useMemo(() => ({ state, actions }), [state]); // eslint-disable-line react-hooks/exhaustive-deps
 }
 
-type Store = ReturnType<typeof useStoreValue>;
-const Ctx = createContext<Store | null>(null);
-
-export function AppProvider({ children }: { children: ReactNode }) {
-  const value = useStoreValue();
+function DemoProvider({ children }: { children: ReactNode }) {
+  const value = useDemoStore();
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
-export function useApp() {
-  const v = useContext(Ctx);
-  if (!v) throw new Error("useApp must be used inside AppProvider");
-  return v;
+export function AppProvider({ children }: { children: ReactNode }) {
+  return LIVE ? <LiveProvider>{children}</LiveProvider> : <DemoProvider>{children}</DemoProvider>;
 }

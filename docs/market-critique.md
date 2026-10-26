@@ -81,6 +81,8 @@ Concierge pilot: run the service by hand before building more software. One pers
 
 The space is covered for adults. Intro's differences are design choices a competitor can copy in a release. The open space (16–17, in person) is open because it is dangerous, and app stores or regulators may close it. Intro is worth continuing as a density play in Brisbane with a reason for people to say yes, proven by a concierge pilot before further build. The decision is the segment.
 
+Decision (27 October 2026): build and launch at 16+, no concierge pilot. The app is the test. See `decisions.md`, decision 16.
+
 ## Sources
 
 - [The Next Web: Friending](https://thenextweb.com/news/friending-app-loneliness-real-world-friendships)

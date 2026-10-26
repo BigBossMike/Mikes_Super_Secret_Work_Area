@@ -2,7 +2,7 @@
 
 The real Intro app, built with Expo (React Native) so one codebase runs on iPhone and Android.
 
-**Status:** all screens work end to end using sample people stored on the phone. The in-person connect (Bluetooth, with a QR code fallback) is built but not yet tested on real phones. The next step is connecting it to the Supabase backend in `../supabase/`.
+**Status:** all screens work end to end using sample people stored on the phone (demo mode). The same screens run live against the Supabase backend in `../supabase/` when the two settings in `.env.example` are filled in. The live mode is wired up but has not yet been run against a real project. The in-person connect (Bluetooth, with a QR code fallback) is built but not yet tested on real phones.
 
 ## What's in here
 
@@ -13,7 +13,8 @@ The real Intro app, built with Expo (React Native) so one codebase runs on iPhon
 | `src/components/ui.tsx` | Shared building blocks: buttons, cards, chips, toggles. |
 | `src/lib/` | The rules: age bands, matching, blocking contact details in chat, the connect codes and checks. Covered by tests. |
 | `src/handshake/` | The in-person connect: Bluetooth (`ble.ts`), location, the server calls (`api.ts`, with a stand-in for the demo build) and the `useHandshake` hook the Connect screens use. |
-| `src/store/AppStore.tsx` | What the app remembers. Each action is marked where it will call the backend. |
+| `src/store/` | What the app remembers. `context.ts` is the shape the screens see; `AppStore.tsx` fills it with sample people (demo); `LiveStore.tsx` fills it from Supabase; `liveMapping.ts` turns database rows into screen state (tested). |
+| `src/backend/` | Every Supabase call (`supabaseBackend.ts`), the connection (`client.ts`), row types and plain-English error messages. |
 | `src/theme.ts` | Colours (light and dark) and fonts. |
 
 ## Running it
@@ -26,6 +27,20 @@ npm start        # then scan the QR code with the Expo Go app on your phone
 npm test         # runs the rules tests
 npm run typecheck
 ```
+
+## Going live
+
+1. Set up the Supabase project (`../supabase/README.md`, "Setting it up").
+2. Copy `.env.example` to `.env.local` and fill in the Project URL and anon key.
+3. Restart the dev server: `npx expo start --clear`.
+
+What changes in live mode:
+
+- Sign in by mobile number and an SMS code (new `signin.tsx` screen). Parents sign in the same way to approve a teen.
+- Order at sign-up: age, then profile, then the parent sign-off for under-18s (the database needs the profile first).
+- "Confirm my age" uses the typed date of birth. The server's `verify-stub` function marks the person verified. Pilot only: the ID-check provider replaces it before launch.
+- Matches, requests, chats, connections and the plan allowance come from the database. New requests and chat messages arrive live; answers to your own plan are checked every 5 seconds.
+- Payments show "not set up yet" until in-app purchases are built.
 
 ## Connect in person: demo and live
 
@@ -51,7 +66,7 @@ Or use EAS Build with a development profile. The signal strength and distance li
 
 ## Still to do before launch
 
-1. Connect the store to Supabase: accounts, profiles, objectives, matches, chat.
+1. Run the live mode against a real Supabase project and fix what breaks. The code is wired; it has only been typechecked.
 2. ID verification provider (for example Stripe Identity or ConnectID).
 3. Test the Bluetooth connect on two phones with a development build, and tune the limits.
 4. Parent app: either a separate app or a parent mode in this one.

@@ -19,6 +19,8 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 13 | Brisbane launch led by Mike's parent network, starting with a small invite-only pilot. | See `docs/launch-plan.md`. |
 | 14 | Bluetooth library: **munim-bluetooth** (advertises and listens on both iPhone and Android). The connect code travels inside a 128-bit Bluetooth service UUID. QR fallback: expo-camera to scan, react-native-qrcode-svg to show. Decided 27 October 2026. | iPhones can only advertise service UUIDs and a name, so this is the one method that works between any two phones. Bluetooth needs a development build; Expo Go runs the demo with a pretend partner and a real QR code. |
 | 15 | Matching is **Brisbane-wide**: "close enough, not next door". The database caps candidates at 25 km from the person's suburb; the app scores closer people higher but has no cutoff. Decided 27 October 2026. | Mike: the pool is the city, not the suburb. |
+| 16 | **Build and launch, 16+ as originally planned. No concierge pilot.** Market test is the app itself. Decided 27 October 2026 after `market-critique.md`. | Mike: a spreadsheet and WhatsApp don't test it; build, market, then fail if it fails. Worst case is an app nobody uses. |
+| 17 | Live app: sign in by mobile number and SMS code (Supabase phone auth). During the pilot the server function verify-stub marks people verified from the date of birth they type; it only works when a secret is set and is replaced by the ID provider before launch. Order at sign-up is age, profile, then parent sign-off. Decided 27 October 2026. | Parents claim invites by phone number, so phone sign-in is needed anyway. The database needs the profile before a parent invite or a verification. |
 
 ## State at the end of the first session
 

@@ -18,6 +18,7 @@ export default function Searching() {
 
   useEffect(() => {
     if (state.searchPhase === "done") router.replace("/matches");
+    if (state.searchPhase === "failed") router.replace("/home");
   }, [state.searchPhase]);
 
   const waitingOnParent = state.searchPhase === "guardian";

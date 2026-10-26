@@ -90,9 +90,10 @@ The app side is in `app/src/handshake/`. The code recipe and the checks are mirr
 2. **Build the database.** In the project, open **SQL Editor**, paste in the whole of `migrations/0001_init.sql`, and press **Run**.
    - Alternatively, with the Supabase command-line tool: `supabase link` then `supabase db push`.
 3. **Optional test data.** For a test project only, run `seed.sql` the same way. Don't do this on the live project.
-4. **Turn on phone sign-in** under Authentication → Providers → Phone. Parents claim invites by signing in with their mobile.
-5. **Deploy the handshake function** with the command-line tool: `supabase functions deploy connect-handshake`.
-6. **Connect the app.** Copy the **Project URL** and **anon key** from Project Settings → API into the app's settings. Never put the **service_role** key in the app. It's for server code only.
+4. **Turn on phone sign-in** under Authentication → Providers → Phone. Everyone signs in with a mobile number and an SMS code, and parents claim invites the same way. Sending real SMS needs an SMS provider (Twilio or similar) set up on that page. For testing, add **test phone numbers with fixed codes** on the same page, so no SMS is sent.
+5. **Deploy the server functions** with the command-line tool: `supabase functions deploy connect-handshake` and `supabase functions deploy verify-stub`.
+   - `verify-stub` marks people verified from the date of birth they type. **Pilot only.** Switch it on with `supabase secrets set STUB_VERIFY_ENABLED=true`, and turn it off (`supabase secrets unset STUB_VERIFY_ENABLED`) once the ID-check provider is in.
+6. **Connect the app.** Copy the **Project URL** and **anon key** from Project Settings → API into `app/.env.local` (see `app/.env.example`). Never put the **service_role** key in the app. It's for server code only.
 
 ## Still to do before launch
 

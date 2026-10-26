@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { View } from "react-native";
 import { Avatar, Btn, Card, Pill, Row, Screen, T, Tag, ToggleRow } from "@/components/ui";
 import { ageBand, bandLabel } from "@/lib/age";
+import { LIVE } from "@/backend/client";
 import { useApp } from "@/store/AppStore";
 
 export default function Me() {
@@ -50,7 +51,7 @@ export default function Me() {
         <T variant="small">{state.plan === "unlimited" ? "Unlimited objectives, $10 a month." : `Free: 1 objective a month${state.credits ? ` plus ${state.credits} extra` : ""}.`}</T>
         <Btn small variant="ghost" label="Change plan" onPress={() => router.push("/plans")} />
       </Card>
-      <Btn small variant="ghost" label="Restart demo" onPress={() => { actions.reset(); router.replace("/"); }} />
+      <Btn small variant="ghost" label={LIVE ? "Sign out" : "Restart demo"} onPress={() => { actions.reset(); router.replace("/"); }} />
     </Screen>
   );
 }

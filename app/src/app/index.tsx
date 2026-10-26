@@ -1,6 +1,9 @@
 import { router } from "expo-router";
+import { useEffect } from "react";
 import { View } from "react-native";
+import { LIVE } from "@/backend/client";
 import { Btn, Logo, Row, Screen, T } from "@/components/ui";
+import { useApp } from "@/store/AppStore";
 import { useTheme } from "@/theme";
 
 const STEPS = [
@@ -11,9 +14,15 @@ const STEPS = [
 
 export default function Welcome() {
   const t = useTheme();
+  const { state } = useApp();
+  // Live app: someone already signed in with a profile goes straight to Home.
+  useEffect(() => {
+    if (LIVE && state.session === "in" && state.hasProfile) router.replace("/home");
+  }, [state.session, state.hasProfile]);
+  const start = () => router.push(LIVE ? (state.session === "in" ? "/verify" : "/signin") : "/verify");
   return (
     <Screen back={false} footer={<>
-      <Btn label="Get started" onPress={() => router.push("/verify")} />
+      <Btn label="Get started" disabled={LIVE && state.session === "loading"} onPress={start} />
       <T variant="small" style={{ textAlign: "center" }}>16+ only. Photo ID check required. Under-18s and adults are never matched together.</T>
     </>}>
       <View style={{ gap: 18, paddingTop: 24 }}>
