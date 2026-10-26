@@ -43,9 +43,8 @@ When changing a matching or privacy rule, change it in all three places (`app/sr
 
 ## Next steps
 
-1. Push to GitHub. Earlier pushes from the cloud session were refused, so the GitHub App may still need installing.
-2. Create a Supabase project, run the migration, and connect the app store to it.
-3. Choose an ID check provider.
-4. Build the Bluetooth connect, with a QR code fallback.
-5. Set up in-app purchases.
-6. Get legal advice on age rules and privacy.
+1. Create a Supabase project, run the migration, and connect the app store to it.
+2. Choose an ID check provider.
+3. Build the Bluetooth connect, with a QR code fallback.
+4. Set up in-app purchases.
+5. Get legal advice on age rules and privacy.
