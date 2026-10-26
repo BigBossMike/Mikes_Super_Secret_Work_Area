@@ -443,13 +443,18 @@ $$;
 
 -- The ages someone is happy to be matched with.
 --   16-17: always 16 to 17.
---   Adults: what they've set, otherwise their own age -10 to +10, never under 18.
+--   Adults: what they've set, otherwise their own age -10 to +10.
+--   Never more than 20 years either side, and never under 18.
 create function private.age_range(dob date, mn smallint, mx smallint, out lo int, out hi int)
 language sql stable as $$
-  select case when private.age_years(dob) < 18 then greatest(16, coalesce(mn, 16))
-              else greatest(18, coalesce(mn, private.age_years(dob) - 10)) end,
-         case when private.age_years(dob) < 18 then least(17, coalesce(mx, 17))
-              else coalesce(mx, private.age_years(dob) + 10) end
+  with a as (select private.age_years(dob) as age),
+       r as (select age,
+                    case when age < 18 then greatest(16, coalesce(mn, 16))
+                         else greatest(18, age - 20, coalesce(mn, age - 10)) end as lo,
+                    case when age < 18 then least(17, coalesce(mx, 17))
+                         else least(age + 20, coalesce(mx, age + 10)) end as hi
+             from a)
+  select lo, greatest(lo, hi) from r
 $$;
 
 -- Does "other" fall inside the seeker's age range?
@@ -533,6 +538,10 @@ begin
   if private.age_years(new.date_of_birth) >= 18 then
     if new.match_age_min is not null and new.match_age_min < 18 then
       raise exception 'Adults can only be matched with people 18 and over' using errcode = 'P0001';
+    end if;
+    if (new.match_age_min is not null and new.match_age_min < private.age_years(new.date_of_birth) - 20)
+       or (new.match_age_max is not null and new.match_age_max > private.age_years(new.date_of_birth) + 20) then
+      raise exception 'Age range can be at most 20 years either side of your age' using errcode = 'P0001';
     end if;
   elsif (new.match_age_min is not null and new.match_age_min not between 16 and 17)
      or (new.match_age_max is not null and new.match_age_max not between 16 and 17) then

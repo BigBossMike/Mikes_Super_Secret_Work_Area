@@ -18,12 +18,12 @@ function Step({ label, value, onChange, min, max }: { label: string; value: numb
   );
 }
 
-/** Pick the youngest and oldest ages to be paired with. Adults only. */
-export function AgeRange({ min, max, onChange }: { min: number; max: number; onChange: (min: number, max: number) => void }) {
+/** Pick the youngest and oldest ages to be paired with. Adults only, within `limits`. */
+export function AgeRange({ min, max, limits, onChange }: { min: number; max: number; limits: [number, number]; onChange: (min: number, max: number) => void }) {
   return (
     <Row gap={12}>
-      <Step label="Youngest" value={min} min={18} max={max} onChange={v => onChange(v, max)} />
-      <Step label="Oldest" value={max} min={min} max={99} onChange={v => onChange(min, v)} />
+      <Step label="Youngest" value={min} min={limits[0]} max={max} onChange={v => onChange(v, max)} />
+      <Step label="Oldest" value={max} min={min} max={limits[1]} onChange={v => onChange(min, v)} />
     </Row>
   );
 }

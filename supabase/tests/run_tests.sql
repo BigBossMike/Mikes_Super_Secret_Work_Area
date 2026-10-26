@@ -220,7 +220,13 @@ commit;
 begin; :as_margaret
 select test.fails($$update public.profiles set match_age_min = 16 where id = auth.uid()$$, '18 and over', 'Adults cannot set a minimum age under 18');
 select test.fails($$update public.profiles set match_age_min = 50, match_age_max = 40 where id = auth.uid()$$, 'match_age_bounds', 'Minimum age cannot be above maximum age');
+select test.fails($$update public.profiles set match_age_min = 30 where id = auth.uid()$$, 'at most 20 years', 'A 55-year-old cannot reach down to 30');
+select test.fails($$update public.profiles set match_age_max = 80 where id = auth.uid()$$, 'at most 20 years', 'A 55-year-old cannot reach up to 80');
 commit;
+select test.ok((select lo = 35 and hi = 75 from private.age_range((select date_of_birth from public.profiles where id = :'MARGARET'), 1::smallint, 99::smallint)),
+  'Stored values outside 20 years are clamped to 35-75 for a 55-year-old');
+select test.ok((select lo = 18 and hi = 45 from private.age_range((current_date - interval '25 years 1 day')::date, 18::smallint, 60::smallint)),
+  'A 25-year-old can go from 18 to at most 45');
 begin; :as_alex
 select test.fails($$update public.profiles set match_age_max = 25 where id = auth.uid()$$, '16 and 17', 'Teens cannot widen their age range beyond 16-17');
 commit;

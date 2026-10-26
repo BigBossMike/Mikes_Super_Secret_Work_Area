@@ -54,6 +54,12 @@ describe("findMatches", () => {
     expect(effectiveAgeRange(20)).toEqual([18, 30]);
     expect(effectiveAgeRange(17, 40, 60)).toEqual([16, 17]);
   });
+  it("lets adults widen to at most 20 years either side, never under 18", () => {
+    expect(effectiveAgeRange(25, 18, 60)).toEqual([18, 45]);
+    expect(effectiveAgeRange(38, 10, 70)).toEqual([18, 58]);
+    expect(effectiveAgeRange(55, 20, 90)).toEqual([35, 75]);
+    expect(effectiveAgeRange(55, 50, 60)).toEqual([50, 60]);
+  });
   it("needs both people inside each other's chosen range", () => {
     expect(agesCompatible({ age: 40, ageMin: 35, ageMax: 45 }, { age: 44 })).toBe(true);
     expect(agesCompatible({ age: 40, ageMin: 35, ageMax: 45 }, { age: 44, ageMin: 42, ageMax: 50 })).toBe(false);

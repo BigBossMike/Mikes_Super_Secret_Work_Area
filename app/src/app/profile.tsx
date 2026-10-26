@@ -3,7 +3,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { AgeRange } from "@/components/AgeRange";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
-import { effectiveAgeRange, isMinor } from "@/lib/age";
+import { ageRangeLimits, effectiveAgeRange, isMinor } from "@/lib/age";
 import { INTERESTS, SUBURBS, TIMES } from "@/lib/data";
 import { useApp } from "@/store/AppStore";
 
@@ -37,8 +37,8 @@ export default function Profile() {
       {adult && (
         <View style={{ gap: 8 }}>
           <T variant="label">Pair me with people aged</T>
-          <AgeRange min={range[0]} max={range[1]} onChange={(a, b) => setRange([a, b])} />
-          <T variant="small">You're only ever paired with people inside this range, and only if you're inside theirs.</T>
+          <AgeRange min={range[0]} max={range[1]} limits={ageRangeLimits(u.age ?? 18)} onChange={(a, b) => setRange([a, b])} />
+          <T variant="small">You're only ever paired with people inside this range, and only if you're inside theirs. It can be up to 20 years either side of your age, and never under 18.</T>
         </View>
       )}
       {adult

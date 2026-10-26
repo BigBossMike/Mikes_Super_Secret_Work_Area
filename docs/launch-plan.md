@@ -6,7 +6,7 @@
 
 Everyone has plans that need one more person: a fifth player, someone to see a film with, a midweek dinner, a walking buddy, a fourth for trivia. Intro is for everyone 16+ who'd rather do the thing than wait for the right person to turn up.
 
-Two groups that never mix: 16 to 17, and 18+. Adults are only ever paired inside their chosen age range (default: their age plus or minus 10), and only if they're inside the other person's range too. A 55-year-old is never paired with a 19-year-old.
+Two groups that never mix: 16 to 17, and 18+. Adults are only ever paired inside their chosen age range (default: their age plus or minus 10, and never wider than 20 years either side or under 18), and only if they're inside the other person's range too. A 55-year-old is never paired with a 19-year-old.
 
 ## How it should feel
 

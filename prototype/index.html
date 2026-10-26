@@ -332,11 +332,14 @@ function ageFrom(dob) {
   return a;
 }
 
-// Adults are paired only inside each other's age range (default: own age ±10, never under 18)
+// Adults are paired only inside each other's age range: default own age ±10,
+// widened to at most ±20, never under 18
+const ageLimits = age => age < 18 ? [16, 17] : [Math.max(18, age - 20), age + 20];
 const ageRange = (age, min, max) => {
   if (age < 18) return [16, 17];
-  const lo = Math.max(18, min ?? age - 10);
-  return [lo, Math.max(lo, max ?? age + 10)];
+  const [floor, ceil] = ageLimits(age);
+  const lo = Math.max(floor, min ?? age - 10);
+  return [lo, Math.max(lo, Math.min(ceil, max ?? age + 10))];
 };
 // Demo stand-in for "people in my phone contacts"
 const DEMO_CONTACTS = ["kai", "dave"];
@@ -483,9 +486,9 @@ const SCREENS = {
       <label class="f">Suburb<select class="input" id="psuburb">${Object.keys(SUBURBS).map(s => `<option ${s === u.suburb ? "selected" : ""}>${s}</option>`).join("")}</select></label>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">Things you're into</b>${chips("interests", INTERESTS, u.interests)}</div>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">When you're usually free</b>${chips("times", TIMES, u.times)}</div>
-      ${(u.age ?? 17) >= 18 ? (() => { const r = ageRange(u.age, u.ageMin, u.ageMax); return `<div style="display:flex;flex-direction:column;gap:8px"><b class="small">Pair me with people aged</b>
-        <div class="row"><input class="input" id="pmin" type="number" min="18" max="99" value="${r[0]}" aria-label="Youngest" style="width:90px"><span class="muted">to</span><input class="input" id="pmax" type="number" min="18" max="99" value="${r[1]}" aria-label="Oldest" style="width:90px"></div>
-        <span class="small muted">You're only ever paired with people inside this range, and only if you're inside theirs.</span></div>
+      ${(u.age ?? 17) >= 18 ? (() => { const r = ageRange(u.age, u.ageMin, u.ageMax), lim = ageLimits(u.age); return `<div style="display:flex;flex-direction:column;gap:8px"><b class="small">Pair me with people aged</b>
+        <div class="row"><input class="input" id="pmin" type="number" min="${lim[0]}" max="${lim[1]}" value="${r[0]}" aria-label="Youngest" style="width:90px"><span class="muted">to</span><input class="input" id="pmax" type="number" min="${lim[0]}" max="${lim[1]}" value="${r[1]}" aria-label="Oldest" style="width:90px"></div>
+        <span class="small muted">You're only ever paired with people inside this range, and only if you're inside theirs. Up to 20 years either side of your age, never under 18.</span></div>
       <label class="f">Workplace <span class="small muted" style="font-weight:400">Optional. Keeps people from work out of your matches.</span><input class="input" id="pwork" value="${esc(u.workplace)}" placeholder="Where you work"></label>`; })()
       : `<label class="f">School <span class="small muted" style="font-weight:400">Optional. Lets you keep people from your school out of your matches.</span><input class="input" id="pschool" value="${esc(u.school)}" placeholder="Your school"></label>`}
       <label class="f">Cultural background <span class="small muted" style="font-weight:400">Optional. Private, and only used if you turn it on in an objective.</span><input class="input" id="pbg" value="${esc(u.background)}" placeholder="e.g. Samoan, Indian, Greek"></label>
@@ -762,7 +765,7 @@ const ACT = {
     if (v("pschool")) S.user.school = v("pschool").value.trim();
     if (v("pwork")) S.user.workplace = v("pwork").value.trim();
     if (v("pmin")) {
-      const lo = Math.max(18, Math.min(99, parseInt(v("pmin").value, 10) || 18)), hi = Math.max(lo, Math.min(99, parseInt(v("pmax").value, 10) || lo));
+      const [lo, hi] = ageRange(S.user.age, parseInt(v("pmin").value, 10) || undefined, parseInt(v("pmax").value, 10) || undefined);
       S.user.ageMin = lo; S.user.ageMax = hi;
     }
     if (!S.user.verified) sampleState("profile");
