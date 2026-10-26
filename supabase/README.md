@@ -9,15 +9,16 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0001_init.sql` | Builds the whole database: tables, safety rules, matching, and permissions. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
 | `seed.sql` | Made-up Brisbane test people. For testing only, never the live app. |
-| `tests/` | Automated checks that the safety rules work (65 of them). |
+| `tests/` | Automated checks that the safety rules work (90 of them). |
 
 ## The tables, in plain English
 
 | Table | What it holds | Who can see it |
 |---|---|---|
-| `profiles` | First name, photo, suburb, interests, free times, school, date of birth, ID-verified date. | You and your parent. Everyone else only sees a small card (first name, photo, age, suburb), and only when allowed. |
+| `profiles` | First name, photo, suburb, interests, free times, school, workplace, the age range you're happy to meet, privacy settings, date of birth, ID-verified date. | You and your parent. Everyone else only sees a small card (first name, photo, age, suburb), and only when allowed. |
 | `profile_private` | Cultural background (optional). | Only you. |
-| `private_contacts` | Full name, mobile, Instagram. | You, and people you've **met in person** through Intro. |
+| `private_contacts` | Full name, mobile, Instagram. The mobile is also stored in a standard +61 form and as a fingerprint (see below). | You, and people you've **met in person** through Intro. |
+| `hidden_contacts` | Fingerprints of the numbers in your phone's contacts, for "hide me from my contacts". | **Only you.** Not other users, not parents. |
 | `guardians` | The link between a 16 or 17 year old and their parent, plus the parent's settings. | The teen and the parent. Only the parent can change the settings. |
 | `objectives` | "A fifth player for Tuesday football", when, where, and who'll be there. | The owner, their parent, and the people asked about it. |
 | `match_requests` | Who Intro asked to be put forward, and whether they said yes. | The person asked. The person asking only sees names once someone says **yes**. People who pass stay anonymous. |
@@ -37,6 +38,9 @@ These are checked by the database itself, so they hold even if someone tampers w
 - **16+ only**, and only the ID-check service can mark someone verified or change their date of birth.
 - **16 and 17 year olds need an approved parent** before they can post an objective or be matched. A parent claims the invite by signing in with the mobile number the teen entered.
 - **Minors are only ever matched with minors (16–17), and adults with adults.**
+- **Age ranges for adults are hard limits, and both people must fit.** Each adult can set the youngest and oldest age they're happy to meet. If they haven't, it's their own age minus 10 to plus 10, and never under 18. Matching only happens when each person's age is inside the *other* person's range. So a 55-year-old (45–65) is never matched with a 19-year-old (18–29). Within the range, people closer in age still score a little higher.
+- **Keep my school out / keep my workplace out:** if either person has it switched on and they share a school or workplace (capital letters don't matter), they're never matched. Both are on by default.
+- **Hide me from my contacts:** this is on by default, so nobody can find out who uses Intro by being matched with someone they know. If either person has it on and the other's mobile is in their phone contacts, they're never matched. This works in both directions.
 - **Matching** (`find_matches`) asks up to 5 people. It skips:
   - anyone paused or blocked
   - anyone from the same school if either person has "keep my school out" on
@@ -48,6 +52,26 @@ These are checked by the database itself, so they hold even if someone tampers w
 - **Locked chat:** messages with phone numbers, emails, @handles, links or social app names are rejected until the two people have connected in person.
 - **Plans:** 1 free objective a month. After that, each one needs a $5 credit, unless the person is on the $10 unlimited plan.
 - **Contact details unlock only after an in-person connection**, which only the server can record.
+
+## "Hide me from my contacts": how the app must hash numbers
+
+The app never uploads anyone's contact book. For each number in the phone it uploads a fingerprint, and the database compares fingerprints. For this to work, the app must make fingerprints **exactly** the way the database does:
+
+1. **Normalise the number to E.164 form.** Remove everything except digits and a leading `+`. Then:
+   - Australian local numbers (`0` followed by 9 digits) become `+61` plus the 9 digits. So `0491 570 101` becomes `+61491570101`.
+   - Numbers starting `61` with 9 more digits get a `+` in front.
+   - Numbers already starting with `+` are kept as they are.
+   - Skip anything else.
+2. **Hash it.** Take the SHA-256 of the UTF-8 text, e.g. `+61491570101`.
+3. **Send lowercase hex.** That's 64 characters, inserted into `hidden_contacts.phone_hash`.
+
+The database does the same to each person's mobile in `private_contacts`. The functions are `private.normalise_phone` and `private.phone_hash`. A mobile number the database can't recognise is rejected.
+
+Note: phone numbers are a small set, so a fingerprint could in principle be reversed by trying every number. That's why only the owner can ever read their own list.
+
+## Discreet notifications
+
+`profiles.discreet_notifications` is a stored setting, off by default. When it's on, whatever sends push notifications must use neutral text: **"Intro: you have an update"**. That means no names, no objective text and no "new match". The database only stores the setting; the push sender has to respect it.
 
 ## How the phone handshake works
 
@@ -78,6 +102,7 @@ The settings at the top of that file, like the signal strength and distance limi
 - **Photo storage:** a Supabase Storage bucket for profile photos, with rules matching `profile_card`.
 - **Objective screening:** check objectives for mocking or targeting language before anyone is asked.
 - **Matching runs only on suburb centres.** The suburb list only covers inner Brisbane so far. Add more before launch.
+- **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.
 - **Ganging-up detection** only knows about people who've met through Intro. It can't yet see friendships that exist outside the app. Same-school and same-device signals could be added.
 
 ## Running the tests on a computer

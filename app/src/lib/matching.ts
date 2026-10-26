@@ -1,4 +1,4 @@
-import { ageBand } from "./age";
+import { agesCompatible } from "./age";
 import { SUBURBS } from "./data";
 import type { Match, ObjectiveType, Person, Seeker } from "./types";
 
@@ -12,16 +12,18 @@ export function distanceKm(a: string, b: string): number {
 
 /**
  * Picks up to 5 people for an objective.
- * Rules: same age band only, never the seeker's own school when they've asked for that,
- * then score on objective fit, shared interests, free-time overlap and distance,
+ * Hard rules: both people inside each other's age range (and never across 16–17 / 18+),
+ * nobody the seeker has hidden (such as their phone contacts), and not their own school
+ * or workplace when they've asked for that. Then score on objective fit, shared interests, free-time overlap and distance,
  * with a gentle preference for people closer in age.
  */
 export function findMatches(seeker: Seeker, type: ObjectiveType, pool: Person[], exclude: string[] = []): Match[] {
-  const band = ageBand(seeker.age);
+  const same = (a?: string, b?: string) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
   return pool
-    .filter(p => ageBand(p.age) === band)
-    .filter(p => !exclude.includes(p.id))
-    .filter(p => !(seeker.keepSchoolOut && seeker.school && p.school && p.school.toLowerCase() === seeker.school.toLowerCase()))
+    .filter(p => agesCompatible(seeker, p))
+    .filter(p => !exclude.includes(p.id) && !(seeker.hiddenIds ?? []).includes(p.id))
+    .filter(p => !(seeker.keepSchoolOut && same(seeker.school, p.school)))
+    .filter(p => !(seeker.keepWorkplaceOut && same(seeker.workplace, p.workplace)))
     .map(p => {
       const fit = p.interests.filter(i => type.tags.includes(i));
       const shared = p.interests.filter(i => seeker.interests.includes(i));

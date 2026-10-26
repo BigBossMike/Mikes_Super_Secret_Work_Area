@@ -35,6 +35,16 @@ grant execute on all functions in schema test to anon, authenticated, service_ro
 \set KAI    '00000000-0000-4000-8000-000000000008'
 \set BEN    '00000000-0000-4000-8000-000000000101'
 \set CHRIS  '00000000-0000-4000-8000-000000000901'
+\set NOAH     '00000000-0000-4000-8000-000000000103'
+\set MARGARET '00000000-0000-4000-8000-000000000107'
+\set DAVE     '00000000-0000-4000-8000-000000000108'
+\set LINDA    '00000000-0000-4000-8000-000000000109'
+\set HELEN    '00000000-0000-4000-8000-000000000110'
+\set GARY     '00000000-0000-4000-8000-000000000111'
+\set PETE     '00000000-0000-4000-8000-000000000112'
+\set TONY     '00000000-0000-4000-8000-000000000113'
+\set SUE      '00000000-0000-4000-8000-000000000114'
+\set ROB      '00000000-0000-4000-8000-000000000115'
 \set PAT    '00000000-0000-4000-8000-000000000902'
 
 \set as_alex   'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000001","role":"authenticated"}'', true); set local role authenticated;'
@@ -44,6 +54,7 @@ grant execute on all functions in schema test to anon, authenticated, service_ro
 \set as_ben    'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000101","role":"authenticated"}'', true); set local role authenticated;'
 \set as_chris  'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000901","role":"authenticated"}'', true); set local role authenticated;'
 \set as_pat    'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000902","role":"authenticated"}'', true); set local role authenticated;'
+\set as_margaret 'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000107","role":"authenticated"}'', true); set local role authenticated;'
 \set as_kaimum 'select set_config(''request.jwt.claims'', ''{"sub":"00000000-0000-4000-8000-000000000903","role":"authenticated"}'', true); set local role authenticated;'
 \set as_server 'select set_config(''request.jwt.claims'', ''{"role":"service_role"}'', true); set local role service_role;'
 
@@ -205,6 +216,70 @@ begin; :as_alex
 select test.ok((select plan = 'unlimited' and remaining is null from public.objective_allowance()), 'Unlimited plan shows no limit');
 commit;
 
+\echo '--- Age ranges'
+begin; :as_margaret
+select test.fails($$update public.profiles set match_age_min = 16 where id = auth.uid()$$, '18 and over', 'Adults cannot set a minimum age under 18');
+select test.fails($$update public.profiles set match_age_min = 50, match_age_max = 40 where id = auth.uid()$$, 'match_age_bounds', 'Minimum age cannot be above maximum age');
+commit;
+begin; :as_alex
+select test.fails($$update public.profiles set match_age_max = 25 where id = auth.uid()$$, '16 and 17', 'Teens cannot widen their age range beyond 16-17');
+commit;
+select test.ok((select lo = 45 and hi = 65 from private.age_range((select date_of_birth from public.profiles where id = :'MARGARET'), null, null)),
+  'A 55-year-old''s default range is 45-65');
+select test.ok((select lo = 18 and hi = 29 from private.age_range((select date_of_birth from public.profiles where id = :'NOAH'), null, null)),
+  'A 19-year-old''s default range is 18-29 (never under 18)');
+
+\echo '--- Hidden contacts and workplace'
+begin; :as_margaret
+select test.ok((select count(*) = 1 from public.hidden_contacts), 'Margaret can see her own hidden contacts list');
+commit;
+begin; :as_ben
+select test.ok((select count(*) = 0 from public.hidden_contacts), 'Nobody else can read anyone''s hidden contacts');
+select test.fails($$insert into public.hidden_contacts (owner_id, phone_hash) values ('00000000-0000-4000-8000-000000000107', repeat('a', 64))$$,
+  'row-level security', 'Nobody can add to someone else''s hidden contacts');
+commit;
+begin; :as_chris
+select test.ok((select count(*) = 0 from public.hidden_contacts), 'Parents cannot read hidden contacts either');
+commit;
+select test.ok((select mobile_e164 = '+61491570131' and mobile_hash = encode(sha256('+61491570131'::bytea), 'hex')
+                from public.private_contacts where id = :'DAVE'), 'Mobiles are normalised to +61 form before hashing');
+select test.ok((select mobile_e164 = '+61491570130' from public.private_contacts where id = :'MARGARET'), 'Local format 0491 570 130 normalises to +61491570130');
+select test.fails($$insert into public.private_contacts (id, full_name, mobile) values ('00000000-0000-4000-8000-000000000114', 'Sue', '12345')$$,
+  'mobile_recognised', 'Unrecognisable mobile numbers are rejected');
+
+\echo '--- Matching a 55-year-old'
+begin; :as_margaret
+insert into public.objectives (type, text) values ('trivia', 'A fifth person for our Thursday pub trivia team');
+select public.find_matches((select id from public.objectives where owner_id = auth.uid()));
+commit;
+create view test.margaret_asked as
+  select mr.candidate_id from public.match_requests mr join public.objectives o on o.id = mr.objective_id where o.owner_id = :'MARGARET';
+select test.ok((select bool_and(private.age_years(p.date_of_birth) between 45 and 65)
+                from test.margaret_asked a join public.profiles p on p.id = a.candidate_id), 'A 55-year-old is never matched outside 45-65');
+select test.ok(not exists (select 1 from test.margaret_asked where candidate_id in (:'SUE', :'ROB')), 'Sue (44) and Rob (70) are never asked');
+select test.ok((select count(*) = 2 from test.margaret_asked where candidate_id in (:'HELEN', :'GARY')), 'Custom ranges respected when both fit (Helen 50-60, Gary 40-56)');
+select test.ok(not exists (select 1 from test.margaret_asked where candidate_id = :'PETE'), 'Matching is mutual: Pete (60) wants 60-70, so Margaret (55) is not matched');
+select test.ok(not exists (select 1 from test.margaret_asked where candidate_id = :'DAVE'), 'Hidden contacts: Dave is in Margaret''s contacts, so never asked');
+select test.ok(not exists (select 1 from test.margaret_asked where candidate_id = :'LINDA'), 'Hidden contacts work both ways: Linda has Margaret in hers');
+select test.ok(exists (select 1 from test.margaret_asked where candidate_id = :'HELEN'), 'A hidden-contacts list is ignored when that person has hiding off');
+select test.ok(not exists (select 1 from test.margaret_asked where candidate_id = :'TONY'), 'Same workplace is kept out (case-insensitive)');
+select test.ok(not exists (select 1 from test.margaret_asked a join public.profiles p on p.id = a.candidate_id
+                           where private.age_years(p.date_of_birth) < 45), 'No young adults for a 55-year-old');
+
+insert into public.objectives (owner_id, type, text) values (:'LINDA', 'trivia', 'A fifth person for trivia night');
+select public.find_matches((select id from public.objectives where owner_id = :'LINDA'));
+select test.ok(not exists (select 1 from public.match_requests mr join public.objectives o on o.id = mr.objective_id
+                           where o.owner_id = :'LINDA' and mr.candidate_id = :'MARGARET'), 'Linda never gets Margaret either');
+
+\echo '--- Matching a 19-year-old'
+insert into public.objectives (owner_id, type, text) values (:'NOAH', 'sport', 'Someone for social touch footy');
+select public.find_matches((select id from public.objectives where owner_id = :'NOAH'));
+select test.ok((select count(*) > 0 and bool_and(private.age_years(p.date_of_birth) between 18 and 29)
+                from public.match_requests mr join public.objectives o on o.id = mr.objective_id
+                join public.profiles p on p.id = mr.candidate_id where o.owner_id = :'NOAH'), 'A 19-year-old is only matched with 18-29 year olds');
+select test.ok(not exists (select 1 from public.match_requests mr join public.objectives o on o.id = mr.objective_id
+                           where o.owner_id = :'NOAH' and mr.candidate_id = :'MARGARET'), 'A 19-year-old never gets the 55-year-old');
+
 \echo '--- Adults stay with adults, weekly cap'
 begin; :as_ben
 insert into public.objectives (type, text) values ('sport', 'Someone for social touch footy on Tuesdays');
@@ -217,11 +292,18 @@ select test.ok((select bool_and(private.age_years(p.date_of_birth) >= 18)
 -- Every other adult posts an objective too.
 insert into public.objectives (owner_id, type, text)
 select id, 'movie', 'Someone to see a movie with this weekend' from public.profiles
-where private.age_years(date_of_birth) >= 18 and id <> :'BEN';
+where private.age_years(date_of_birth) >= 18 and id <> :'BEN'
+  and not exists (select 1 from public.objectives o where o.owner_id = public.profiles.id);
 select public.find_matches(o.id) from public.objectives o join public.profiles p on p.id = o.owner_id
 where private.age_years(p.date_of_birth) >= 18 and o.owner_id <> :'BEN' order by o.created_at;
 select test.ok((select max(n) <= 3 from (select count(*) n from public.match_requests
                 where created_at > now() - interval '7 days' group by candidate_id) x), 'Nobody gets more than 3 requests a week');
+select test.ok(not exists (
+  select 1 from public.match_requests mr join public.objectives o on o.id = mr.objective_id
+  join public.profiles a on a.id = o.owner_id join public.profiles b on b.id = mr.candidate_id
+  where not (private.age_fits(a.date_of_birth, a.match_age_min, a.match_age_max, b.date_of_birth)
+             and private.age_fits(b.date_of_birth, b.match_age_min, b.match_age_max, a.date_of_birth))),
+  'Every request in the database respects both people''s age ranges');
 
 \echo '--- Ganging-up protection'
 -- Priya and Jordan have met (connected). Priya targets someone; then Jordan's

@@ -27,7 +27,15 @@ export default function Me() {
         <Btn small variant="ghost" label="Edit my answers" onPress={() => router.push("/profile")} />
       </Card>
       <Card><ToggleRow title="Can be put forward" sub="Turn off to stop appearing in other people's matches." value={!u.paused} onChange={v => actions.setPaused(!v)} /></Card>
-      <Card><ToggleRow title="Keep my school out" sub={`Don't match me with people from ${u.school || "my school"}.`} value={u.keepSchoolOut} onChange={actions.setKeepSchoolOut} /></Card>
+      <Card>
+        <T variant="h3">Privacy</T>
+        <T variant="small">Nobody can browse or search Intro. You're only ever shown to someone you've been paired with and said yes to.</T>
+        <ToggleRow title="Hide me from my contacts" sub="People in your phone contacts are never paired with you, and never see you. Checked privately. Your contacts aren't stored." value={u.hideContacts} onChange={v => actions.setPrivacy("hideContacts", v)} />
+        {actions.isMinor()
+          ? <ToggleRow title="Keep my school out" sub={`Never pair me with people from ${u.school || "my school"}.`} value={u.keepSchoolOut} onChange={v => actions.setPrivacy("keepSchoolOut", v)} />
+          : <ToggleRow title="Keep my workplace out" sub={`Never pair me with people from ${u.workplace || "where I work"}.`} value={u.keepWorkplaceOut} onChange={v => actions.setPrivacy("keepWorkplaceOut", v)} />}
+        <ToggleRow title="Discreet notifications" sub={'Notifications just say "Intro: you have an update".'} value={u.discreet} onChange={v => actions.setPrivacy("discreet", v)} />
+      </Card>
       {actions.isMinor() && (
         <Card>
           <T variant="h3">Parent controls</T>

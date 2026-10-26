@@ -1,7 +1,9 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
+import { AgeRange } from "@/components/AgeRange";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
+import { effectiveAgeRange, isMinor } from "@/lib/age";
 import { INTERESTS, SUBURBS, TIMES } from "@/lib/data";
 import { useApp } from "@/store/AppStore";
 
@@ -13,11 +15,15 @@ export default function Profile() {
   const [suburb, setSuburb] = useState(u.suburb);
   const [school, setSchool] = useState(u.school);
   const [background, setBackground] = useState(u.background);
+  const [workplace, setWorkplace] = useState(u.workplace);
+  const adult = u.age !== null && !isMinor(u.age);
+  const [range, setRange] = useState(effectiveAgeRange(u.age ?? 17, u.ageMin ?? undefined, u.ageMax ?? undefined));
 
   const save = () => {
     if (!name.trim()) return toast("Add your first name.");
     if (u.interests.length < 2) return toast("Pick at least 2 things you're into.");
-    actions.saveProfile({ name: name.trim(), suburb, school: school.trim(), background: background.trim() });
+    actions.saveProfile({ name: name.trim(), suburb, school: school.trim(), background: background.trim(), workplace: workplace.trim() });
+    if (adult) actions.setAgeRange(range[0], range[1]);
     router.replace("/home");
   };
 
@@ -28,7 +34,16 @@ export default function Profile() {
       <View style={{ gap: 8 }}><T variant="label">Suburb</T><Chips options={Object.keys(SUBURBS)} selected={[suburb]} onToggle={setSuburb} /></View>
       <View style={{ gap: 8 }}><T variant="label">Things you're into</T><Chips options={INTERESTS} selected={u.interests} onToggle={v => actions.toggleInList("interests", v)} /></View>
       <View style={{ gap: 8 }}><T variant="label">When you're usually free</T><Chips options={TIMES} selected={u.times} onToggle={v => actions.toggleInList("times", v)} /></View>
-      <Field label="School" hint="Optional. Lets you keep people from your school out of your matches." value={school} onChangeText={setSchool} placeholder="Your school" />
+      {adult && (
+        <View style={{ gap: 8 }}>
+          <T variant="label">Pair me with people aged</T>
+          <AgeRange min={range[0]} max={range[1]} onChange={(a, b) => setRange([a, b])} />
+          <T variant="small">You're only ever paired with people inside this range, and only if you're inside theirs.</T>
+        </View>
+      )}
+      {adult
+        ? <Field label="Workplace" hint="Optional. Keeps people from work out of your matches." value={workplace} onChangeText={setWorkplace} placeholder="Where you work" />
+        : <Field label="School" hint="Optional. Lets you keep people from your school out of your matches." value={school} onChangeText={setSchool} placeholder="Your school" />}
       <Field label="Cultural background" hint="Optional and private." value={background} onChangeText={setBackground} placeholder="e.g. Samoan, Indian, Greek" />
     </Screen>
   );

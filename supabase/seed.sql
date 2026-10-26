@@ -23,6 +23,15 @@ insert into auth.users (id, aud, role, email, phone) values
   ('00000000-0000-4000-8000-000000000104', 'authenticated', 'authenticated', 'grace@example.com',  '61491570124'),
   ('00000000-0000-4000-8000-000000000105', 'authenticated', 'authenticated', 'zoe@example.com',    '61491570125'),
   ('00000000-0000-4000-8000-000000000106', 'authenticated', 'authenticated', 'ethan@example.com',  '61491570126'),
+  ('00000000-0000-4000-8000-000000000107', 'authenticated', 'authenticated', 'margaret@example.com', '61491570130'),
+  ('00000000-0000-4000-8000-000000000108', 'authenticated', 'authenticated', 'dave@example.com',     '61491570131'),
+  ('00000000-0000-4000-8000-000000000109', 'authenticated', 'authenticated', 'linda@example.com',    '61491570132'),
+  ('00000000-0000-4000-8000-000000000110', 'authenticated', 'authenticated', 'helen@example.com',    '61491570133'),
+  ('00000000-0000-4000-8000-000000000111', 'authenticated', 'authenticated', 'gary@example.com',     '61491570134'),
+  ('00000000-0000-4000-8000-000000000112', 'authenticated', 'authenticated', 'pete@example.com',     '61491570135'),
+  ('00000000-0000-4000-8000-000000000113', 'authenticated', 'authenticated', 'tony@example.com',     '61491570136'),
+  ('00000000-0000-4000-8000-000000000114', 'authenticated', 'authenticated', 'sue@example.com',      '61491570137'),
+  ('00000000-0000-4000-8000-000000000115', 'authenticated', 'authenticated', 'rob@example.com',      '61491570138'),
   ('00000000-0000-4000-8000-000000000901', 'authenticated', 'authenticated', 'chris@example.com',  '61491570157'),
   ('00000000-0000-4000-8000-000000000902', 'authenticated', 'authenticated', 'pat@example.com',    '61491570158');
 
@@ -43,12 +52,44 @@ insert into public.profiles (id, first_name, suburb, interests, free_times, scho
   ('00000000-0000-4000-8000-000000000105', 'Zoe',    'Indooroopilly', '{Dance,Music,Art}',              '{Saturdays}',                   null,                   true,  current_date - interval '18 years 2 months', now()),
   ('00000000-0000-4000-8000-000000000106', 'Ethan',  'Toowong',       '{Cricket,Gym,Movies}',           '{"Tuesday nights"}',            null,                   true,  current_date - interval '26 years',          now());
 
+-- Older adults, to test age ranges, hidden contacts and workplaces.
+--   Margaret 55: default range 45-65. Works at Example Hospital (keep out on).
+--   Dave 48: in range, but in Margaret's hidden contacts.
+--   Linda 62: in range, but has Margaret in HER hidden contacts.
+--   Helen 50: custom range 50-60. Has Margaret in her list but hiding is OFF.
+--   Gary 58: custom range 40-56 (Margaret 55 fits).
+--   Pete 60: custom range 60-70 (Margaret 55 does NOT fit, so not mutual).
+--   Tony 52: same workplace as Margaret.
+--   Sue 44 and Rob 70: outside Margaret's range.
+insert into public.profiles (id, first_name, suburb, interests, free_times, workplace, keep_workplace_out,
+                             match_age_min, match_age_max, hide_contacts, date_of_birth, verified_at) values
+  ('00000000-0000-4000-8000-000000000107', 'Margaret', 'Paddington',  '{Walking,Trivia,Food}', '{Weeknights,Saturdays}', 'Example Hospital', true,  null, null, true,  current_date - interval '55 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000108', 'Dave',     'Red Hill',    '{Walking,Food}',        '{Saturdays}',            null,               true,  null, null, true,  current_date - interval '48 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000109', 'Linda',    'Ashgrove',    '{Trivia,Food}',         '{Weeknights}',           null,               true,  null, null, true,  current_date - interval '62 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000110', 'Helen',    'Bardon',      '{Walking,Trivia}',      '{Saturdays}',            null,               true,  50,   60,   false, current_date - interval '50 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000111', 'Gary',     'Spring Hill', '{Food,Trivia}',         '{Weeknights}',           null,               true,  40,   56,   true,  current_date - interval '58 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000112', 'Pete',     'New Farm',    '{Walking,Food,Trivia}', '{Weeknights,Saturdays}', null,               true,  60,   70,   true,  current_date - interval '60 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000113', 'Tony',     'Paddington',  '{Walking,Trivia,Food}', '{Weeknights,Saturdays}', 'example hospital', false, null, null, true,  current_date - interval '52 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000114', 'Sue',      'Paddington',  '{Walking,Trivia,Food}', '{Weeknights,Saturdays}', null,               true,  null, null, true,  current_date - interval '44 years 1 month', now()),
+  ('00000000-0000-4000-8000-000000000115', 'Rob',      'Paddington',  '{Walking,Trivia,Food}', '{Weeknights,Saturdays}', null,               true,  null, null, true,  current_date - interval '70 years 1 month', now());
+
 insert into public.private_contacts (id, full_name, mobile, instagram) values
   ('00000000-0000-4000-8000-000000000001', 'Alex Example',  '0491 570 101', '@alex.example'),
   ('00000000-0000-4000-8000-000000000002', 'Jordan Lee',    '0491 570 102', '@jordan.lee.example'),
   ('00000000-0000-4000-8000-000000000003', 'Priya Nair',    '0491 570 103', null),
   ('00000000-0000-4000-8000-000000000004', 'Tom Walsh',     '0491 570 104', '@tom.walsh.example'),
-  ('00000000-0000-4000-8000-000000000101', 'Ben Hart',      '0491 570 121', null);
+  ('00000000-0000-4000-8000-000000000101', 'Ben Hart',      '0491 570 121', null),
+  ('00000000-0000-4000-8000-000000000107', 'Margaret Example', '0491 570 130', null),
+  ('00000000-0000-4000-8000-000000000108', 'Dave Example',     '+61 491 570 131', null),
+  ('00000000-0000-4000-8000-000000000109', 'Linda Example',    '0491 570 132', null),
+  ('00000000-0000-4000-8000-000000000110', 'Helen Example',    '0491 570 133', null);
+
+-- Hidden contacts, as the app would upload them:
+-- lowercase hex SHA-256 of the E.164 number, e.g. sha256('+61491570131').
+insert into public.hidden_contacts (owner_id, phone_hash) values
+  ('00000000-0000-4000-8000-000000000107', encode(sha256('+61491570131'::bytea), 'hex')),  -- Margaret hides from Dave
+  ('00000000-0000-4000-8000-000000000109', encode(sha256('+61491570130'::bytea), 'hex')),  -- Linda hides from Margaret
+  ('00000000-0000-4000-8000-000000000110', encode(sha256('+61491570130'::bytea), 'hex'));  -- Helen lists Margaret, but hiding is off
 
 -- Parents. Alex's dad Chris has approved; Kai's invite is still pending,
 -- so Kai can't use Intro (or be matched) yet. Every other teen gets a

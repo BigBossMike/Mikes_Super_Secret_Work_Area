@@ -1,10 +1,10 @@
 # Intro
 
-**Putting forward a digital hand in a modern world.**
+**Extending a digital hand in a modern world.**
 
-Intro is the introduction a friend used to make for you. Got a plan that needs one more person, like a fifth player for Tuesday football, someone to see a film with, or a midweek dinner? Put it out there and Intro introduces you to up to five people nearby who are keen too. Then you meet in real life.
+Intro is the introduction a friend used to make for you. Got a plan that needs one more person, like a fifth player for Tuesday football, someone to see a film with, or a midweek dinner? Put it out there and Intro pairs you with up to five people nearby who are keen too, like putting your name down at the golf club and getting paired up. Then you meet in real life.
 
-It's for everyone 16+. 16 to 17 year olds and adults are never matched together. No followers, likes or feed: Intro is about real life, not another social feed. See the [Brisbane launch plan](docs/launch-plan.md).
+It's for everyone 16+. 16 to 17 year olds and adults are never matched together, and adults are only paired inside their chosen age range (both ways). Nobody can browse Intro or see who uses it. No followers, likes or feed: Intro is about real life, not another social feed. See the [Brisbane launch plan](docs/launch-plan.md).
 
 ## What's in this repo
 
@@ -13,7 +13,7 @@ It's for everyone 16+. 16 to 17 year olds and adults are never matched together.
 | [`app/`](app/) | The real mobile app (Expo / React Native, iPhone and Android). All screens work with sample data. |
 | [`supabase/`](supabase/) | The backend: database, security rules, matching and the in-person handshake. |
 | [`prototype/`](prototype/) | The original clickable mock-up. Open `prototype/index.html` in any browser. |
-| [`docs/`](docs/) | [Research](docs/research.md) (competitors, safety, phone handshake) and the [launch plan](docs/launch-plan.md). |
+| [`docs/`](docs/) | [Research](docs/research.md) (competitors, safety, phone handshake), the [launch plan](docs/launch-plan.md), and [ID checks and AI](docs/verification-and-ai.md). |
 
 ## How it works
 

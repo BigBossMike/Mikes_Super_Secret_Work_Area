@@ -11,6 +11,10 @@ export interface Person {
   times: string[];
   hue: number;
   school?: string;
+  workplace?: string;
+  /** Ages this person is happy to be paired with (adults). Defaults to their age ±10. */
+  ageMin?: number;
+  ageMax?: number;
 }
 
 export interface ObjectiveType {
@@ -51,4 +55,10 @@ export interface Seeker {
   times: string[];
   school?: string;
   keepSchoolOut: boolean;
+  workplace?: string;
+  keepWorkplaceOut?: boolean;
+  ageMin?: number;
+  ageMax?: number;
+  /** People to never pair with, e.g. phone contacts when "hide me from my contacts" is on. */
+  hiddenIds?: string[];
 }

@@ -3,9 +3,9 @@
 // place where a Supabase call goes in the live app (see supabase/README.md).
 import { createContext, ReactNode, useCallback, useContext, useMemo, useRef, useState } from "react";
 import { useToast } from "@/components/ui";
-import { ageBand, ageFrom, isMinor as minorAge } from "@/lib/age";
+import { ageFrom, agesCompatible, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
-import { defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
+import { DEMO_CONTACT_IDS, defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
 import { findMatches } from "@/lib/matching";
 import type { Match, Objective, ObjectiveDraft } from "@/lib/types";
 
@@ -26,7 +26,15 @@ export interface User {
   name: string; dob: string; age: number | null; verified: boolean; suburb: string;
   interests: string[]; times: string[]; school: string; background: string;
   keepSchoolOut: boolean; paused: boolean;
+  workplace: string; keepWorkplaceOut: boolean;
+  /** Never pair me with people in my phone contacts (and hide me from them). */
+  hideContacts: boolean;
+  /** Notifications say only "Intro: you have an update". */
+  discreet: boolean;
+  /** Adults only: ages I'm happy to be paired with. Null means the default, my age ±10. */
+  ageMin: number | null; ageMax: number | null;
 }
+export type PrivacyKey = "keepSchoolOut" | "keepWorkplaceOut" | "hideContacts" | "discreet";
 export interface State {
   user: User; guardian: Guardian; plan: Plan; credits: number; used: number;
   draft: ObjectiveDraft; draftEdited: boolean; objective: Objective | null; matches: Match[]; searchPhase: SearchPhase;
@@ -57,7 +65,8 @@ const REPLIES: Record<string, string[]> = {
 function initial(): State {
   return {
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, suburb: "Paddington", interests: ["Football", "Music", "Movies"],
-      times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false },
+      times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false,
+      workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
     guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
     plan: "free", credits: 0, used: 0,
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
@@ -65,16 +74,18 @@ function initial(): State {
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday",
       why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
       { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner",
-      why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" }],
+      why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
+      { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river",
+      why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
   };
 }
 
 export const MONTH_NAME = MONTH;
 
-/** Requests only ever come from the same age group (16–17 or adults). */
+/** Requests follow the same rule as matches: both people inside each other's age range. */
 export function visibleRequests(s: State) {
-  const band = ageBand(s.user.age ?? ageFrom(s.user.dob) ?? 17);
-  return s.requests.filter(r => ageBand(r.age) === band);
+  const me = { age: s.user.age ?? ageFrom(s.user.dob) ?? 17, ageMin: s.user.ageMin ?? undefined, ageMax: s.user.ageMax ?? undefined };
+  return s.requests.filter(r => agesCompatible(me, { age: r.age }));
 }
 
 export function personById(s: State, id: string) {
@@ -149,7 +160,11 @@ function useStoreValue() {
       if (needsOk) setTimeout(() => { update(s => { s.searchPhase = "finding"; }); toast(`${s0.guardian.name} approved your objective.`); }, 1600);
       setTimeout(() => {
         const u = ref.current.user;
-        const matches = findMatches({ age: u.age ?? 17, suburb: u.suburb, interests: u.interests, times: u.times, school: u.school, keepSchoolOut: u.keepSchoolOut }, type, SAMPLE_PEOPLE);
+        const matches = findMatches({
+          age: u.age ?? 17, suburb: u.suburb, interests: u.interests, times: u.times,
+          school: u.school, keepSchoolOut: u.keepSchoolOut, workplace: u.workplace, keepWorkplaceOut: u.keepWorkplaceOut,
+          ageMin: u.ageMin ?? undefined, ageMax: u.ageMax ?? undefined, hiddenIds: u.hideContacts ? DEMO_CONTACT_IDS : [],
+        }, type, SAMPLE_PEOPLE);
         update(s => { s.matches = matches; s.searchPhase = "done"; });
         // Demo: people answer over the next few seconds
         const answers: Match["status"][] = ["agreed", "agreed", "asking", "passed", "agreed"];
@@ -200,7 +215,8 @@ function useStoreValue() {
       if (yes) toast(`${ref.current.requests.find(x => x.id === id)?.name} can now message you.`);
     },
     setPaused(v: boolean) { update(s => { s.user.paused = v; }); },
-    setKeepSchoolOut(v: boolean) { update(s => { s.user.keepSchoolOut = v; }); },
+    setPrivacy(k: PrivacyKey, v: boolean) { update(s => { s.user[k] = v; }); },
+    setAgeRange(min: number, max: number) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); },
     setGuardianSetting(k: "approveObjectives" | "notifyConnect" | "meetCheckin", v: boolean) { update(s => { s.guardian[k] = v; }); },
     buyOne() { update(s => { s.credits++; }); toast("Added 1 objective (demo, no charge)."); },
     setPlan(p: Plan) { update(s => { s.plan = p; }); toast(p === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); },

@@ -231,7 +231,8 @@ ul.activity li { display: flex; flex-direction: column; gap: 2px; padding-left: 
       <button data-jump="plans">Plans</button>
     </div>
     <div class="tip"><b>Try this:</b> in a chat, type a phone number, email or Instagram handle. Intro blocks it until you've connected in person.</div>
-    <div class="tip"><b>Adults too:</b> on the ID check, change the date of birth to an adult one (try 1986-06-01) to see the adult version, with plans like a midweek dinner. Under-18s and adults are never matched together.</div>
+    <div class="tip"><b>Adults too:</b> on the ID check, change the date of birth to an adult one (try 1971-06-01) to see the adult version, with plans like a midweek dinner. Adults are only paired inside their chosen age range, both ways, and under-18s and adults never mix.</div>
+    <div class="tip"><b>Private by design:</b> nobody can browse or search Intro. People in your phone contacts and from your school or workplace are never paired with you. See the Privacy card under Me.</div>
     <div class="tip"><b>Ganging-up protection:</b> nobody can search for people, you only see someone once they say yes, people who pass stay anonymous, and every objective says how many people will be there.</div>
     <div class="jump"><button data-jump="reset">Start over</button></div>
   </aside>
@@ -273,8 +274,10 @@ const PEOPLE = [
   { id: "zoe", name: "Zoe", last: "Ward", age: 18, suburb: "Indooroopilly", interests: ["Dance", "Music", "Art"], times: ["Saturdays"], hue: 0 },
   { id: "ethan", name: "Ethan", last: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 },
   { id: "sophie", name: "Sophie", last: "Grant", age: 33, suburb: "New Farm", interests: ["Food", "Walking", "Movies"], times: ["Weeknights", "Saturdays"], hue: 300 },
-  { id: "raj", name: "Raj", last: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35 },
+  { id: "raj", name: "Raj", last: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35, workplace: "Riverside Engineering" },
   { id: "dave", name: "Dave", last: "Murray", age: 47, suburb: "Paddington", interests: ["Walking", "Trivia", "Music"], times: ["Weeknights", "Sundays"], hue: 200 },
+  { id: "graham", name: "Graham", last: "Wells", age: 61, suburb: "Paddington", interests: ["Walking", "Food", "Trivia"], times: ["Weeknights", "Sundays"], hue: 95 },
+  { id: "helen", name: "Helen", last: "Ross", age: 52, suburb: "New Farm", interests: ["Food", "Art", "Walking"], times: ["Weeknights"], hue: 330 },
   { id: "margaret", name: "Margaret", last: "Byrne", age: 58, suburb: "Toowong", interests: ["Food", "Walking", "Art"], times: ["Weeknights", "Sundays"], hue: 15 },
   { id: "lena", name: "Lena", last: "Fischer", age: 36, suburb: "Kelvin Grove", interests: ["Food", "Running", "Trivia"], times: ["Weeknights"], hue: 130 }
 ];
@@ -289,12 +292,14 @@ function fresh() {
   return {
     screen: "welcome", tab: "home", back: null,
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, verifying: false, error: "", suburb: "Paddington",
-            interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", school: "", noSchool: true, paused: false },
+            interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", school: "", noSchool: true, paused: false,
+            workplace: "", noWork: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
     plan: "free", credits: 0, used: 0,
     objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
     matches: [], chatWith: null, chats: {}, connectStage: 0, lastConnected: null,
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
-               { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" }],
+               { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
+               { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river", why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
     planNotice: "", searchPhase: 0,
     parent: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true }
   };
@@ -309,7 +314,10 @@ const av = (p, cls = "") => `<div class="av ${cls}" style="background:hsl(${p.hu
 const person = id => PEOPLE.find(p => p.id === id) || S.requests.find(r => r.id === id);
 const allowance = () => S.plan === "unlimited" ? Infinity : 1 + S.credits;
 const canStart = () => S.used < allowance();
-const myRequests = () => S.requests.filter(r => band(r.age) === band(S.user.age ?? ageFrom(S.user.dob) ?? 17));
+const myRequests = () => {
+  const me = S.user.age ?? ageFrom(S.user.dob) ?? 17, mine = ageRange(me, S.user.ageMin, S.user.ageMax);
+  return S.requests.filter(r => { const theirs = ageRange(r.age); return band(r.age) === band(me) && r.age >= mine[0] && r.age <= mine[1] && me >= theirs[0] && me <= theirs[1]; });
+};
 const draftFor = age => { const t = OBJ_TYPES.find(x => x.id === (age < 18 ? "sport" : "dinner")); return { type: t.id, text: t.text, when: t.when, where: t.where, group: t.group }; };
 const isMinor = () => (S.user.age ?? ageFrom(S.user.dob) ?? 17) < 18;
 const shown = m => m.status === "agreed" || S.chats[m.id]?.connected;
@@ -324,11 +332,26 @@ function ageFrom(dob) {
   return a;
 }
 
+// Adults are paired only inside each other's age range (default: own age ±10, never under 18)
+const ageRange = (age, min, max) => {
+  if (age < 18) return [16, 17];
+  const lo = Math.max(18, min ?? age - 10);
+  return [lo, Math.max(lo, max ?? age + 10)];
+};
+// Demo stand-in for "people in my phone contacts"
+const DEMO_CONTACTS = ["kai", "dave"];
+
 // Matching: same age band only, then score on objective fit, shared interests, distance and free time
 function findMatches() {
   const type = OBJ_TYPES.find(t => t.id === S.objective.type);
-  const myBand = band(S.user.age);
-  return PEOPLE.filter(p => band(p.age) === myBand).map(p => {
+  const u = S.user, same = (a, b) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
+  const myRange = ageRange(u.age, u.ageMin, u.ageMax);
+  return PEOPLE.filter(p => band(p.age) === band(u.age))
+    .filter(p => p.age >= myRange[0] && p.age <= myRange[1])
+    .filter(p => { const r = ageRange(p.age); return u.age >= r[0] && u.age <= r[1]; })
+    .filter(p => !(u.hideContacts && DEMO_CONTACTS.includes(p.id)))
+    .filter(p => !(u.noSchool && same(u.school, p.school)) && !(u.noWork && same(u.workplace, p.workplace)))
+    .map(p => {
     const shared = p.interests.filter(i => S.user.interests.includes(i));
     const fit = p.interests.filter(i => type.tags.includes(i));
     const times = p.times.filter(t => S.user.times.includes(t));
@@ -419,7 +442,7 @@ const SCREENS = {
     <div class="hero">
       <div class="logo">intro<i>.</i></div>
       <h1>Real people.<br>Real plans.<br><em>Meet in person.</em></h1>
-      <p class="muted">Got a plan that needs one more? Put a hand out. Intro introduces you to up to five people nearby who are keen too.</p>
+      <p class="muted">Got a plan that needs one more? Extend a digital hand. Like putting your name down at the club, Intro pairs you with up to five people nearby who are keen too.</p>
       <ol class="how">
         <li><span>Set your objective for the month.</span></li>
         <li><span>Up to 5 well-matched people are asked if they're happy to be put forward.</span></li>
@@ -460,7 +483,11 @@ const SCREENS = {
       <label class="f">Suburb<select class="input" id="psuburb">${Object.keys(SUBURBS).map(s => `<option ${s === u.suburb ? "selected" : ""}>${s}</option>`).join("")}</select></label>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">Things you're into</b>${chips("interests", INTERESTS, u.interests)}</div>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">When you're usually free</b>${chips("times", TIMES, u.times)}</div>
-      <label class="f">School <span class="small muted" style="font-weight:400">Optional. Lets you keep people from your school out of your matches.</span><input class="input" id="pschool" value="${esc(u.school)}" placeholder="Your school"></label>
+      ${(u.age ?? 17) >= 18 ? (() => { const r = ageRange(u.age, u.ageMin, u.ageMax); return `<div style="display:flex;flex-direction:column;gap:8px"><b class="small">Pair me with people aged</b>
+        <div class="row"><input class="input" id="pmin" type="number" min="18" max="99" value="${r[0]}" aria-label="Youngest" style="width:90px"><span class="muted">to</span><input class="input" id="pmax" type="number" min="18" max="99" value="${r[1]}" aria-label="Oldest" style="width:90px"></div>
+        <span class="small muted">You're only ever paired with people inside this range, and only if you're inside theirs.</span></div>
+      <label class="f">Workplace <span class="small muted" style="font-weight:400">Optional. Keeps people from work out of your matches.</span><input class="input" id="pwork" value="${esc(u.workplace)}" placeholder="Where you work"></label>`; })()
+      : `<label class="f">School <span class="small muted" style="font-weight:400">Optional. Lets you keep people from your school out of your matches.</span><input class="input" id="pschool" value="${esc(u.school)}" placeholder="Your school"></label>`}
       <label class="f">Cultural background <span class="small muted" style="font-weight:400">Optional. Private, and only used if you turn it on in an objective.</span><input class="input" id="pbg" value="${esc(u.background)}" placeholder="e.g. Samoan, Indian, Greek"></label>
     </div>
     <div class="foot"><button class="btn primary" data-act="saveProfile">Save and continue</button></div>
@@ -626,8 +653,13 @@ const SCREENS = {
         <button class="btn ghost sm" data-act="go" data-arg="profile">Edit my answers</button></div>
       <div class="card"><div class="switch"><div><h3>Can be put forward</h3><p class="small muted">Turn off to stop appearing in other people's matches.</p></div>
         <button class="toggle ${u.paused ? "" : "on"}" data-act="pause" aria-pressed="${!u.paused}" aria-label="Can be put forward"></button></div></div>
-      <div class="card"><div class="switch"><div><h3>Keep my school out</h3><p class="small muted">Don't match me with people from ${u.school ? esc(u.school) : "my school"}.</p></div>
-        <button class="toggle ${u.noSchool ? "on" : ""}" data-act="noSchool" aria-pressed="${u.noSchool}" aria-label="Keep my school out"></button></div></div>
+      <div class="card"><h3>Privacy</h3><p class="small muted">Nobody can browse or search Intro. You're only ever shown to someone you've been paired with and said yes to.</p>
+        ${[["hideContacts", "Hide me from my contacts", "People in your phone contacts are never paired with you, and never see you. Checked privately. Your contacts aren't stored."],
+           isMinor() ? ["noSchool", "Keep my school out", `Never pair me with people from ${u.school ? esc(u.school) : "my school"}.`]
+                     : ["noWork", "Keep my workplace out", `Never pair me with people from ${u.workplace ? esc(u.workplace) : "where I work"}.`],
+           ["discreet", "Discreet notifications", "Notifications just say “Intro: you have an update”."]].map(([k, t, d]) =>
+          `<div class="switch"><div><b>${t}</b><p class="small muted">${d}</p></div><button class="toggle ${u[k] ? "on" : ""}" data-act="privacy" data-arg="${k}" aria-pressed="${!!u[k]}" aria-label="${t}"></button></div>`).join("")}
+      </div>
       ${isMinor() ? `<div class="card"><h3>Parent controls</h3><p class="small muted">Linked to ${esc(S.parent.name)} (${esc(S.parent.rel)}). Their settings:</p>
         <ul class="plist small">${[["approveObjectives", "Approve each objective first"], ["notifyConnect", "Get a message when you connect with someone"], ["meetCheckin", "Ask where and when you're meeting"]].map(([k, l]) => `<li class="${S.parent[k] ? "" : "off"}">${l}${S.parent[k] ? "" : " (off)"}</li>`).join("")}</ul>
         <p class="small muted">Your chats stay private. ${esc(S.parent.name)} can't read them.</p>
@@ -725,7 +757,14 @@ const ACT = {
     const name = document.getElementById("pname").value.trim();
     if (!name) return toast("Add your first name.");
     if (S.user.interests.length < 2) return toast("Pick at least 2 things you're into.");
-    S.user.name = name; S.user.suburb = document.getElementById("psuburb").value; S.user.background = document.getElementById("pbg").value.trim(); S.user.school = document.getElementById("pschool").value.trim();
+    S.user.name = name; S.user.suburb = document.getElementById("psuburb").value; S.user.background = document.getElementById("pbg").value.trim();
+    const v = id => document.getElementById(id);
+    if (v("pschool")) S.user.school = v("pschool").value.trim();
+    if (v("pwork")) S.user.workplace = v("pwork").value.trim();
+    if (v("pmin")) {
+      const lo = Math.max(18, Math.min(99, parseInt(v("pmin").value, 10) || 18)), hi = Math.max(lo, Math.min(99, parseInt(v("pmax").value, 10) || lo));
+      S.user.ageMin = lo; S.user.ageMax = hi;
+    }
     if (!S.user.verified) sampleState("profile");
     go("home");
   },
@@ -772,7 +811,7 @@ const ACT = {
     setTimeout(() => { S.parent.status = "approved"; if (S.screen === "parent") render(); }, 1400);
   },
   parentToggle: a => { S.parent[a] = !S.parent[a]; render(); },
-  noSchool: () => { S.user.noSchool = !S.user.noSchool; render(); },
+  privacy: a => { S.user[a] = !S.user[a]; render(); },
   pauseAccount: () => { S.user.paused = !S.user.paused; render(); toast(S.user.paused ? `${S.user.name}'s account is paused.` : `${S.user.name}'s account is back on.`); },
   qr: () => toast("In the real app, one phone shows a code and the other scans it."),
   report: () => toast("Reported. The Intro safety team will review this chat."),

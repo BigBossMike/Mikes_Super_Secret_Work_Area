@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ageBand, ageFrom } from "./age";
+import { ageBand, ageFrom, agesCompatible, effectiveAgeRange } from "./age";
 import { blockedReason } from "./contactFilter";
 import { defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "./data";
 import { findMatches } from "./matching";
@@ -41,6 +41,31 @@ describe("findMatches", () => {
     const off = findMatches({ ...teen, school: "Hill State High", keepSchoolOut: false }, sport, pool).map(m => m.id);
     expect(on).not.toContain("jordan");
     expect(off).toContain("jordan");
+  });
+  it("never pairs a 55-year-old outside 45–65, or a 19-year-old with them", () => {
+    const fiftyFive = { age: 55, suburb: "Toowong", interests: ["Food", "Walking"], times: ["Weeknights"], keepSchoolOut: false };
+    for (const t of OBJECTIVE_TYPES) for (const x of findMatches(fiftyFive, t, SAMPLE_PEOPLE)) {
+      const age = SAMPLE_PEOPLE.find(p => p.id === x.id)!.age;
+      expect(age).toBeGreaterThanOrEqual(45);
+      expect(age).toBeLessThanOrEqual(65);
+    }
+    expect(agesCompatible({ age: 19 }, { age: 55 })).toBe(false);
+    expect(effectiveAgeRange(55)).toEqual([45, 65]);
+    expect(effectiveAgeRange(20)).toEqual([18, 30]);
+    expect(effectiveAgeRange(17, 40, 60)).toEqual([16, 17]);
+  });
+  it("needs both people inside each other's chosen range", () => {
+    expect(agesCompatible({ age: 40, ageMin: 35, ageMax: 45 }, { age: 44 })).toBe(true);
+    expect(agesCompatible({ age: 40, ageMin: 35, ageMax: 45 }, { age: 44, ageMin: 42, ageMax: 50 })).toBe(false);
+  });
+  it("leaves out hidden contacts and the same workplace", () => {
+    const adult = { age: 45, suburb: "Paddington", interests: ["Food", "Trivia"], times: ["Weeknights"], keepSchoolOut: false };
+    const base = findMatches(adult, dinner, SAMPLE_PEOPLE).map(m => m.id);
+    expect(base).toContain("raj");
+    const hidden = findMatches({ ...adult, hiddenIds: ["raj"] }, dinner, SAMPLE_PEOPLE).map(m => m.id);
+    expect(hidden).not.toContain("raj");
+    const work = findMatches({ ...adult, workplace: "riverside engineering", keepWorkplaceOut: true }, dinner, SAMPLE_PEOPLE).map(m => m.id);
+    expect(work).not.toContain("raj");
   });
   it("prefers people closer in age for adults", () => {
     const m = findMatches({ age: 55, suburb: "Toowong", interests: ["Food", "Walking"], times: ["Weeknights"], keepSchoolOut: false }, dinner, SAMPLE_PEOPLE);

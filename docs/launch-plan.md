@@ -2,14 +2,15 @@
 
 ## The idea
 
-**Intro puts forward a digital hand in a modern world.** It's the introduction a friend used to make for you: "you should meet so-and-so, they're keen too."
+**Intro extends a digital hand in a modern world.** It's the introduction a friend used to make for you: "you should meet so-and-so, they're keen too." It should feel like putting your name down at the golf club and getting paired up.
 
 Everyone has plans that need one more person: a fifth player, someone to see a film with, a midweek dinner, a walking buddy, a fourth for trivia. Intro is for everyone 16+ who'd rather do the thing than wait for the right person to turn up.
 
-Two groups that never mix: 16 to 17, and 18+. Within the adult group, Intro favours people closer in age.
+Two groups that never mix: 16 to 17, and 18+. Adults are only ever paired inside their chosen age range (default: their age plus or minus 10), and only if they're inside the other person's range too. A 55-year-old is never paired with a 19-year-old.
 
 ## How it should feel
 
+- **Private by design.** Using Intro must never be something people can see or talk about. Nobody can browse or search it. You're only shown to someone you've been paired with and said yes to. Phone contacts, your school or workplace can be kept out. Notifications can be discreet. This is a big difference from dating apps, where anyone could see who was on them.
 - **Confident and everyday.** Intro is a normal, smart way to get a plan going, like booking a court or a table. All messaging leads with the plan and the people, never with a problem.
 - **Real life, not a feed.** No followers, likes, feed or public profiles. Nobody can see how many matches or connections anyone has.
 - **Easy.** One plan a month, up to 5 people, the plan is clear before anyone agrees, and it's normal to bring a friend along to the first meet-up.

@@ -20,6 +20,27 @@
 
 create schema if not exists private;   -- helper functions, not exposed to the app's API
 
+-- Turns a mobile number into E.164 form, e.g. '0491 570 101' -> '+61491570101'.
+-- The app must normalise contact-book numbers the SAME way before hashing
+-- them for "hide me from my contacts" (see README).
+create function private.normalise_phone(raw text) returns text
+language sql immutable as $$
+  select case
+    when s ~ '^\+[1-9][0-9]{7,14}$' then s                    -- already international
+    when s ~ '^0[0-9]{9}$'          then '+61' || substr(s, 2) -- Australian local
+    when s ~ '^61[0-9]{9}$'         then '+' || s              -- Australian without the +
+  end
+  from (select regexp_replace(coalesce(raw, ''), '[^0-9+]', '', 'g') as s) d
+$$;
+
+-- Lowercase hex SHA-256 of the normalised number, e.g.
+-- phone_hash('0491 570 101') = sha256('+61491570101'). (Marked immutable:
+-- the database text encoding is fixed, so the answer never changes.)
+create function private.phone_hash(raw text) returns text
+language sql immutable as $$
+  select encode(sha256(convert_to(private.normalise_phone(raw), 'UTF8')), 'hex')
+$$;
+
 -- ---------------------------------------------------------------------
 -- Reference data
 -- ---------------------------------------------------------------------
@@ -77,10 +98,20 @@ create table public.profiles (
   free_times         text[] not null default '{}',
   school             text,                                -- optional, only used for "keep my school out"
   keep_school_out    boolean not null default true,
+  workplace          text,                                -- optional, only used for "keep my workplace out"
+  keep_workplace_out boolean not null default true,
+  match_age_min      smallint,                            -- adults: who I'm happy to meet (null = my age - 10)
+  match_age_max      smallint,                            -- (null = my age + 10)
+  hide_contacts      boolean not null default true,      -- hide me from people in my phone's contacts
+  discreet_notifications boolean not null default false, -- push notifications say only "Intro: you have an update"
   can_be_put_forward boolean not null default true,      -- "pause" switch
   date_of_birth      date not null,
   verified_at        timestamptz,                         -- set only by the ID-check service
-  created_at         timestamptz not null default now()
+  created_at         timestamptz not null default now(),
+  constraint match_age_bounds check (
+        (match_age_min is null or match_age_min between 16 and 99)
+    and (match_age_max is null or match_age_max between 16 and 99)
+    and (match_age_min is null or match_age_max is null or match_age_min <= match_age_max))
 );
 
 -- Things nobody else should ever see.
@@ -94,8 +125,26 @@ create table public.private_contacts (
   id         uuid primary key default auth.uid() references public.profiles (id) on delete cascade,
   full_name  text not null,
   mobile     text,
-  instagram  text
+  instagram  text,
+  -- Worked out automatically from mobile. Used to match against people's
+  -- hidden-contacts lists without ever storing anyone's contact book.
+  mobile_e164 text generated always as (private.normalise_phone(mobile)) stored,
+  mobile_hash text generated always as (private.phone_hash(mobile)) stored,
+  constraint mobile_recognised check (mobile is null or private.normalise_phone(mobile) is not null)
 );
+create index on public.private_contacts (mobile_hash);
+
+-- "Hide me from my contacts". The app uploads a fingerprint (SHA-256) of each
+-- number in the person's phone, never the numbers themselves. Only the owner
+-- can read their own list. If either person has hide_contacts on and the
+-- other's number is in their list, Intro never matches them.
+create table public.hidden_contacts (
+  owner_id   uuid not null default auth.uid() references public.profiles (id) on delete cascade,
+  phone_hash text not null check (phone_hash ~ '^[0-9a-f]{64}$'),
+  created_at timestamptz not null default now(),
+  primary key (owner_id, phone_hash)
+);
+create index on public.hidden_contacts (phone_hash);
 
 -- Parent or guardian links for 16 and 17 year olds. The teen creates an
 -- invite with the parent's mobile; the parent signs in with that mobile and
@@ -392,6 +441,40 @@ language sql immutable as $$
   end
 $$;
 
+-- The ages someone is happy to be matched with.
+--   16-17: always 16 to 17.
+--   Adults: what they've set, otherwise their own age -10 to +10, never under 18.
+create function private.age_range(dob date, mn smallint, mx smallint, out lo int, out hi int)
+language sql stable as $$
+  select case when private.age_years(dob) < 18 then greatest(16, coalesce(mn, 16))
+              else greatest(18, coalesce(mn, private.age_years(dob) - 10)) end,
+         case when private.age_years(dob) < 18 then least(17, coalesce(mx, 17))
+              else coalesce(mx, private.age_years(dob) + 10) end
+$$;
+
+-- Does "other" fall inside the seeker's age range?
+create function private.age_fits(seeker_dob date, seeker_min smallint, seeker_max smallint, other_dob date) returns boolean
+language sql stable as $$
+  select private.age_years(other_dob) between r.lo and r.hi
+  from private.age_range(seeker_dob, seeker_min, seeker_max) r
+$$;
+
+-- True if either person has asked to be hidden from the other (their number
+-- is in the other's hidden-contacts list and that person has hiding switched on).
+create function private.contact_hidden(a uuid, b uuid) returns boolean
+language sql stable security definer set search_path = '' as $$
+  select exists (
+    select 1
+    from public.profiles pa, public.profiles pb
+    where pa.id = a and pb.id = b
+      and ((pa.hide_contacts and exists (
+              select 1 from public.hidden_contacts h join public.private_contacts c on c.mobile_hash = h.phone_hash
+              where h.owner_id = a and c.id = b))
+        or (pb.hide_contacts and exists (
+              select 1 from public.hidden_contacts h join public.private_contacts c on c.mobile_hash = h.phone_hash
+              where h.owner_id = b and c.id = a))))
+$$;
+
 -- Straight-line distance between two suburb centres, in whole km (min 1).
 create function private.distance_km(a text, b text) returns int
 language sql stable set search_path = '' as $$
@@ -446,6 +529,15 @@ begin
     raise exception 'Intro is for people aged 16 and over' using errcode = 'P0001';
   end if;
   if new.school is not null then new.school := nullif(trim(new.school), ''); end if;
+  if new.workplace is not null then new.workplace := nullif(trim(new.workplace), ''); end if;
+  if private.age_years(new.date_of_birth) >= 18 then
+    if new.match_age_min is not null and new.match_age_min < 18 then
+      raise exception 'Adults can only be matched with people 18 and over' using errcode = 'P0001';
+    end if;
+  elsif (new.match_age_min is not null and new.match_age_min not between 16 and 17)
+     or (new.match_age_max is not null and new.match_age_max not between 16 and 17) then
+    raise exception '16 and 17 year olds are only matched with 16 and 17 year olds' using errcode = 'P0001';
+  end if;
   return new;
 end $$;
 
@@ -571,7 +663,12 @@ for each row execute function private.meetups_after_insert();
 --   * same age band (16-17 with 16-17, 18+ with 18+)
 --   * verified, active, and not paused
 --   * no block either way
---   * not from the same school if either person has "keep my school out" on
+--   * both people's ages inside each other's age range (mutual). Adults
+--     default to their own age -10 to +10, so a 55-year-old is never
+--     matched with a 19-year-old.
+--   * not from the same school / workplace if either person has "keep my
+--     school/workplace out" on
+--   * not hidden from each other via "hide me from my contacts"
 --   * not someone this person has asked before, or already met
 --   * within 25 km
 -- Score also gently prefers people closer in age (matters most for adults).
@@ -594,10 +691,16 @@ language sql stable security definer set search_path = '' as $$
            and p.can_be_put_forward
            and private.is_active(p.id)
            and private.age_band(p.date_of_birth) = private.age_band(me.date_of_birth)
+           and private.age_fits(me.date_of_birth, me.match_age_min, me.match_age_max, p.date_of_birth)
+           and private.age_fits(p.date_of_birth, p.match_age_min, p.match_age_max, me.date_of_birth)
            and not private.blocked_between(p.id, me.id)
            and not ((p.keep_school_out or me.keep_school_out)
                     and p.school is not null and me.school is not null
                     and lower(p.school) = lower(me.school))
+           and not ((p.keep_workplace_out or me.keep_workplace_out)
+                    and p.workplace is not null and me.workplace is not null
+                    and lower(p.workplace) = lower(me.workplace))
+           and not private.contact_hidden(me.id, p.id)
            and not exists (select 1 from public.match_requests mr join public.objectives o2 on o2.id = mr.objective_id
                            where o2.owner_id = me.id and mr.candidate_id = p.id)
            and not private.connected(p.id, me.id)
@@ -895,6 +998,7 @@ alter table public.objective_types        enable row level security;
 alter table public.profiles               enable row level security;
 alter table public.profile_private        enable row level security;
 alter table public.private_contacts       enable row level security;
+alter table public.hidden_contacts        enable row level security;
 alter table public.guardians              enable row level security;
 alter table public.subscriptions          enable row level security;
 alter table public.objective_credits      enable row level security;
@@ -931,6 +1035,15 @@ create policy "add own contacts" on public.private_contacts for insert to authen
   with check (id = (select auth.uid()));
 create policy "edit own contacts" on public.private_contacts for update to authenticated
   using (id = (select auth.uid())) with check (id = (select auth.uid()));
+
+-- Hidden contacts: strictly your own list. Nobody else, including parents,
+-- can read it.
+create policy "own hidden contacts: read" on public.hidden_contacts for select to authenticated
+  using (owner_id = (select auth.uid()));
+create policy "own hidden contacts: add" on public.hidden_contacts for insert to authenticated
+  with check (owner_id = (select auth.uid()));
+create policy "own hidden contacts: remove" on public.hidden_contacts for delete to authenticated
+  using (owner_id = (select auth.uid()));
 
 -- Guardians: the teen and the parent can see the link. The teen can invite;
 -- only the parent can change the settings.
@@ -1014,12 +1127,16 @@ grant select on public.suburbs, public.objective_types to authenticated;
 
 grant select on public.profiles to authenticated;
 grant insert (id, first_name, photo_url, suburb, interests, free_times, school, keep_school_out,
-              can_be_put_forward, date_of_birth) on public.profiles to authenticated;
+              workplace, keep_workplace_out, match_age_min, match_age_max, hide_contacts,
+              discreet_notifications, can_be_put_forward, date_of_birth) on public.profiles to authenticated;
 grant update (first_name, photo_url, suburb, interests, free_times, school, keep_school_out,
-              can_be_put_forward) on public.profiles to authenticated;
+              workplace, keep_workplace_out, match_age_min, match_age_max, hide_contacts,
+              discreet_notifications, can_be_put_forward) on public.profiles to authenticated;
 
 grant select, insert, update, delete on public.profile_private to authenticated;
-grant select, insert, update on public.private_contacts to authenticated;
+grant select on public.private_contacts to authenticated;
+grant insert (id, full_name, mobile, instagram), update (full_name, mobile, instagram) on public.private_contacts to authenticated;
+grant select, insert (owner_id, phone_hash), delete on public.hidden_contacts to authenticated;
 
 grant select on public.guardians to authenticated;
 grant insert (teen_id, relationship, invite_phone) on public.guardians to authenticated;

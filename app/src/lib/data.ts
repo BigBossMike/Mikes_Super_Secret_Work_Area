@@ -30,6 +30,9 @@ export const OBJECTIVE_TYPES: ObjectiveType[] = [
 /** The default plan type shown first: everyday teen plans for 16–17, a midweek dinner for adults. */
 export const defaultTypeFor = (age: number) => (age < 18 ? "sport" : "dinner");
 
+// Demo stand-in for "people in my phone contacts". The live app compares hashed phone numbers on the server.
+export const DEMO_CONTACT_IDS = ["kai", "dave"];
+
 // Fictional sample people for the demo build. Replaced by the database.
 export const SAMPLE_PEOPLE: Person[] = [
   { id: "jordan", name: "Jordan", lastName: "Lee", age: 17, suburb: "Toowong", interests: ["Football", "Music", "Dance", "Movies"], times: ["Weeknights", "Saturdays"], hue: 152 },
@@ -46,8 +49,10 @@ export const SAMPLE_PEOPLE: Person[] = [
   { id: "zoe", name: "Zoe", lastName: "Ward", age: 18, suburb: "Indooroopilly", interests: ["Dance", "Music", "Art"], times: ["Saturdays"], hue: 0 },
   { id: "ethan", name: "Ethan", lastName: "Ngo", age: 26, suburb: "Toowong", interests: ["Cricket", "Gym", "Movies"], times: ["Tuesday nights"], hue: 170 },
   { id: "sophie", name: "Sophie", lastName: "Grant", age: 33, suburb: "New Farm", interests: ["Food", "Walking", "Movies"], times: ["Weeknights", "Saturdays"], hue: 300 },
-  { id: "raj", name: "Raj", lastName: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35 },
+  { id: "raj", name: "Raj", lastName: "Patel", age: 41, suburb: "Spring Hill", interests: ["Food", "Trivia", "Cricket"], times: ["Weeknights"], hue: 35, workplace: "Riverside Engineering" },
   { id: "dave", name: "Dave", lastName: "Murray", age: 47, suburb: "Paddington", interests: ["Walking", "Trivia", "Music"], times: ["Weeknights", "Sundays"], hue: 200 },
+  { id: "graham", name: "Graham", lastName: "Wells", age: 61, suburb: "Paddington", interests: ["Walking", "Food", "Trivia"], times: ["Weeknights", "Sundays"], hue: 95 },
+  { id: "helen", name: "Helen", lastName: "Ross", age: 52, suburb: "New Farm", interests: ["Food", "Art", "Walking"], times: ["Weeknights"], hue: 330 },
   { id: "margaret", name: "Margaret", lastName: "Byrne", age: 58, suburb: "Toowong", interests: ["Food", "Walking", "Art"], times: ["Weeknights", "Sundays"], hue: 15 },
   { id: "lena", name: "Lena", lastName: "Fischer", age: 36, suburb: "Kelvin Grove", interests: ["Food", "Running", "Trivia"], times: ["Weeknights"], hue: 130 },
 ];
