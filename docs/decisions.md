@@ -18,6 +18,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 12 | Phone handshake: Bluetooth plus a server check, with a QR code fallback. | Works on both iPhone and Android. See `docs/research.md`. |
 | 13 | Brisbane launch led by Mike's parent network, starting with a small invite-only pilot. | See `docs/launch-plan.md`. |
 | 14 | Bluetooth library: **munim-bluetooth** (advertises and listens on both iPhone and Android). The connect code travels inside a 128-bit Bluetooth service UUID. QR fallback: expo-camera to scan, react-native-qrcode-svg to show. Decided 27 October 2026. | iPhones can only advertise service UUIDs and a name, so this is the one method that works between any two phones. Bluetooth needs a development build; Expo Go runs the demo with a pretend partner and a real QR code. |
+| 15 | Matching is **Brisbane-wide**: "close enough, not next door". The database caps candidates at 25 km from the person's suburb; the app scores closer people higher but has no cutoff. Decided 27 October 2026. | Mike: the pool is the city, not the suburb. |
 
 ## State at the end of the first session
 

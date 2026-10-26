@@ -7,7 +7,7 @@
 1. The adult "make friends, meet in person" space is covered. More than a dozen funded apps in the US, Bumble BFF relaunched in September 2025, and three or more Australian apps, one of them (Zeeën) already national with Brisbane as its biggest city.
 2. Intro's combination of features is new. Each feature on its own exists somewhere, and all of them can be copied in a release.
 3. The 16–17 segment is empty. It is empty because it is legally and reputationally dangerous, not because nobody has thought of it. App stores or regulators could close it.
-4. The only thing a competitor cannot copy quickly is a dense, trusted user base in one place. Intro is a go-to-market bet, not a technology bet.
+4. The only thing a competitor cannot copy quickly is a dense, trusted user base in one city. Intro is a go-to-market bet, not a technology bet.
 
 ## Who is already there
 
@@ -35,15 +35,15 @@ Market size: approx US$16 million consumer spending across a dozen local friends
 | 16–17 with parent controls, in person | Nobody. Teen apps stay online. | The one clear gap. Open because of risk (see below). A 2-year cohort that ages out. |
 | Everyone ID verified | Friending, Bunchups, Yubo, Synchrony. | Table stakes. A cost paid before any revenue: approx A$2–3 a check (Stripe Identity, US$1.50) to A$9.60 (a local provider). |
 | Private by design, no stigma | Zeeën "friendship, not dating". Bumble "47% of young adults want more friends". | Positioning. Everyone says it. |
-| Australia first | Zeeën is national. 55% of its users are in Brisbane. | Local is not a difference. Dense in one network could be. |
+| Australia first | Zeeën is national. 55% of its users are in Brisbane. | Local is not a difference. Dense in Brisbane first could be. |
 
 ## The hard problems
 
-1. Density. Brisbane City Council area approx 1.3 million people, approx 190 suburbs. 16–17 year olds approx 2.5% of the population, so approx 32,000, or approx 170 a suburb. At 1% take-up that is under 2 a suburb. Matching 5 people for Tuesday 7pm football within a few km, same age band, inside each other's age range, not from your school and not in your contacts, leaves a pool in single digits. Adults are better, and Zeeën already has 1,600+ Brisbane users.
+1. Density. Matching is Brisbane-wide (the database caps it at 25 km from your suburb, which covers most of Greater Brisbane). Greater Brisbane approx 2.7 million people; 16–17 year olds approx 2.1%, so approx 57,000. The pool is the people on Intro, not the people in Brisbane: at 1% take-up that is approx 570 teens. A Tuesday 7pm football plan then filters to football (approx 1 in 5), free Tuesday nights (approx 2 in 5), not your school, not your contacts: approx 40 candidates, 5 asked, 2 to 3 say yes. At 100 teen users the same plan has approx 7 candidates and the asks run out. Threshold: approx 300 to 500 active teens across Brisbane before plans fill reliably. Adults 25–45: approx 800,000 in Greater Brisbane, so a few thousand users is enough. Zeeën already has 1,600+ Brisbane users.
 2. The supply side. Every plan needs up to 5 people to say yes to someone else's idea. Nothing in the model gives them a reason to. Hinge solves this with mutual intent; Intro's ask is one-sided.
 3. Frequency. One plan a month is approx 12 sessions a year. Habit and retention come from frequency. It also undercuts the $10 unlimited tier: few people want more than one plan a month.
 4. Economics. A free user costs A$2–10 to verify and earns nothing. Moderation for minors needs people, not software. Category spend in the US was approx US$16 million for a dozen apps in 2025. Pie has raised US$24 million and has no revenue.
-5. Regulation and app stores (teens). The Digital Duty of Care Bill went into Parliament on 15 October 2026 with penalties up to A$109.2 million; grooming is a named harm. US senators are pressing Apple on age ratings for apps that enable contact with strangers (July 2026). Dating apps are rated 17+ or 18+. Apple or Google could rate an in-person meeting app 17+ or 18+, which excludes 16–17 year olds outright. That decision is theirs.
+5. Regulation and app stores (teens). The Digital Duty of Care Bill went into Parliament on 15 October 2026 with penalties up to A$109.2 million; grooming is a named harm. Apple and Google set age ratings globally: dating apps are 17+ or 18+, and apps that put strangers in contact get extra review. Either store could rate an in-person meeting app 17+ or 18+, which excludes 16–17 year olds outright. That decision is theirs.
 6. Parent-led launch for a teen product. Parents recruit parents. Teens adopt what friends use. An app a parent approves and monitors is a hard sell at 16. "Never stigmatise" and "a parent must approve" pull against each other.
 7. ID at 16. Many 16 year olds have no passport. Learner licence from 16 in Queensland helps. ConnectID needs a participating bank account, and whether it works for minors is unconfirmed (see `verification-and-ai.md`).
 8. One incident. The first serious safety incident involving a minor ends the brand and possibly the company. No feature mitigates this fully.
@@ -60,26 +60,26 @@ The combination is new. None of it is a moat.
 
 ## What could make it defensible
 
-1. Density in one closed network before anything else: one sports association, one school cluster, one suburb. Not "Brisbane".
+1. Density first: a few hundred active users across Brisbane, fast. Recruit through one or two networks (a sports association, a school cluster) because that is where sign-ups come in bulk; match Brisbane-wide.
 2. A reason to say yes: saying yes to someone else's plan earns a plan of your own (reciprocity credits), or saying yes is the free tier and setting plans is the paid one.
 3. An institutional channel: clubs and associations that need fill-ins and already use PlayHQ or Spond. The "fifth player" case is a club problem, not a consumer app problem.
 4. One segment, not two. Adults 25–45 in Brisbane competes with Zeeën on plan-based versus browse. Teens 16–17 needs eSafety engagement and app-store confirmation before another line of code.
 
 ## What the pilot has to prove
 
-Run on paper first: a concierge in one club or school network, WhatsApp and a spreadsheet, 4 weeks, before more code.
+Concierge pilot: run the service by hand before building more software. One person is the app. People send plans by WhatsApp or a form, the organiser picks up to 5 people from a spreadsheet, messages each one to ask if they are happy to be put forward, passes first names between the people who said yes, and leaves them to meet. 100 to 200 people recruited through one or two Brisbane networks, 4 weeks, no code. It measures the things the app cannot change: do people say yes, do plans fill, do people meet, do they come back.
 
 | # | Measure | Pass | Fail |
 |---|---|---|---|
 | 1 | Yes rate: people asked to be put forward who say yes within 24 hours | 50%+ | Under 30% |
-| 2 | Fill rate: plans with 2 or more yeses within 48 hours (200 people, one network) | 60%+ | Under 30% |
+| 2 | Fill rate: plans with 2 or more yeses within 48 hours (100 to 200 people across Brisbane) | 60%+ | Under 30% |
 | 3 | Meet rate: agreed pairs who meet within 14 days | 40%+ | Under 20% |
 | 4 | Return: people who set a second plan the next month | 40%+ | Under 20% |
 | 5 | Cost: verification plus moderation per active user per month | Under A$5 | Over A$10 |
 
 ## Verdict
 
-The space is covered for adults. Intro's differences are design choices a competitor can copy in a release. The open space (16–17, in person) is open because it is dangerous, and app stores or regulators may close it. Intro is worth continuing as a density play in one network with a reason for people to say yes, proven by a concierge pilot before further build. The decision is the segment.
+The space is covered for adults. Intro's differences are design choices a competitor can copy in a release. The open space (16–17, in person) is open because it is dangerous, and app stores or regulators may close it. Intro is worth continuing as a density play in Brisbane with a reason for people to say yes, proven by a concierge pilot before further build. The decision is the segment.
 
 ## Sources
 
@@ -100,7 +100,6 @@ The space is covered for adults. Intro's differences are design choices a compet
 - [Tennis Australia Match Centre fill-in requests](https://support.tennis.com.au/?p=2768)
 - [Department of Infrastructure: Digital Duty of Care](https://www.infrastructure.gov.au/media-communications/internet/online-safety/digital-duty-care)
 - [Lander & Rogers: digital duty of care reforms](https://landers.com.au/legal-insights-news/australias-digital-duty-of-care-reforms-new-obligations-for-online-platforms-and-ai-services)
-- [Senator Ossoff letter to Apple on age ratings, July 2026](https://www.ossoff.senate.gov/wp-content/uploads/2026/07/26.07.30_Letter-to-Apple-re-app-age-limits.pdf)
 - [Singapore Law Watch: app store age restrictions](https://www.singaporelawwatch.sg/Headlines/How-do-app-stores-restrict-underage-users-What-apps-are-out-of-bounds-askST)
 - [Stripe Identity pricing](https://www.stripe.com/identity)
 - [Annature pricing (local provider)](https://toolradar.com/tools/annature/pricing)
