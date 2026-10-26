@@ -4,9 +4,16 @@ Working name for a mobile app that helps people make real-world connections.
 
 Lots of people struggle to find someone for a specific thing: a player for the Tuesday night football team, someone to see a movie with, a study partner before exams. Social media is full of fake profiles and doesn't help you actually meet. Intro is built to get people off the app and into real life.
 
-## Try the prototype
+**Who it's for:** teens and young adults who find it hard to make new connections, not the ones who already have 1,000+ followers. No followers, likes or feed. Parents are the main way in. See the [Brisbane launch plan](docs/launch-plan.md).
 
-Open [`prototype/index.html`](prototype/index.html) in any web browser (double-click it after downloading). It's a clickable mock-up with fake data: no accounts, no ID upload, no payments.
+## What's in this repo
+
+| Folder | What it is |
+|---|---|
+| [`app/`](app/) | The real mobile app (Expo / React Native, iPhone and Android). All screens work with sample data. |
+| [`supabase/`](supabase/) | The backend: database, security rules, matching and the in-person handshake. |
+| [`prototype/`](prototype/) | The original clickable mock-up. Open `prototype/index.html` in any browser. |
+| [`docs/`](docs/) | [Research](docs/research.md) (competitors, safety, phone handshake) and the [launch plan](docs/launch-plan.md). |
 
 ## How it works
 
