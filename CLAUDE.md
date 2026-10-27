@@ -26,7 +26,7 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 | `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. In-person connect (Bluetooth and QR) in `src/handshake/`. |
 | `supabase/` | Database schema, security, matching, the connect-handshake function, seed data and tests. |
 | `prototype/index.html` | Single-file clickable mock-up (also published as a Claude artifact). |
-| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?) and `decisions.md` (why things are the way they are). |
+| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?), `id-provider-comparison.md` and `decisions.md` (why things are the way they are). |
 
 ## Commands
 
@@ -44,7 +44,7 @@ When changing a matching or privacy rule, change it in all three places (`app/sr
 ## Next steps
 
 1. Run the app live against the Supabase project (created 27th October 2026, not yet set up). Waiting on Mike for app/.env.local with the URL, anon key, a Supabase access token and the database password (see app/README.md, Going live). Then: push the migration, deploy connect-handshake and verify-stub, set test phone numbers, run `node app/scripts/live-smoke.mjs`. The app side is wired but has only been typechecked.
-2. Choose an ID check provider.
+2. Choose an ID check provider. Comparison and vendor questions in `docs/id-provider-comparison.md`.
 3. Test the Bluetooth connect on two real phones. The code and the QR fallback are built (`app/src/handshake/`), but Bluetooth needs a development build (`npx expo run:android`, `npx expo run:ios` or EAS Build) and tuning of the signal and distance limits.
 4. Set up in-app purchases.
 5. Get legal advice on age rules and privacy.
