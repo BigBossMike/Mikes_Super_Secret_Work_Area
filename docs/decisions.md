@@ -54,3 +54,4 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
 - City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
 - Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.
+- iPhone registered with Expo. The first iOS build stopped at Apple because the Cavalry Software developer membership had lapsed; Mike renewed it the same day. Packages brought to SDK 58 patch versions; microphone permission removed (Intro never records sound); standard encryption only (ITSAppUsesNonExemptEncryption false).

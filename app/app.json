@@ -9,7 +9,8 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSBluetoothAlwaysUsageDescription": "Intro uses Bluetooth to check your phones are next to each other when you connect in person."
+        "NSBluetoothAlwaysUsageDescription": "Intro uses Bluetooth to check your phones are next to each other when you connect in person.",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "au.cavalry.intro"
     },
@@ -24,7 +25,6 @@
       "package": "au.cavalry.intro",
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]

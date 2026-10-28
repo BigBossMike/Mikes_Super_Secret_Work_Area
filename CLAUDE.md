@@ -49,7 +49,7 @@ Mike's side (accounts; each unblocks a step below):
 
 1. Twilio account (twilio.com): an Australian sender, then Account SID, Auth Token and Messaging Service SID into Supabase → Authentication → Providers → Phone. Until then only the test numbers can sign in.
 2. ID check provider: Stripe Identity for the pilot, or quotes from Yoti and Persona first. Comparison and vendor questions in `docs/id-provider-comparison.md`. Stripe needs a Stripe account (Australia) and its test keys.
-3. Apple Developer Program: Mike has an account (28th October 2026), so TestFlight is open. Google Play Console (US$25 once) only when Android goes to the store; Android testers get an install file from EAS until then.
+3. Apple Developer Program: Cavalry Software Pty Ltd, team CSUUTP3D67. Membership had lapsed and was renewed 28th October 2026. iPhone registered with Expo. Google Play Console (US$25 once) only when Android goes to the store; Android testers get an install file from EAS until then.
 4. RevenueCat account (free tier) for the $5 and $10 plans, after 3.
 5. Lawyer for the age rules, privacy policy and terms, before public launch only. Privacy policy drafted 28th October 2026 (`docs/privacy-policy.md`, 8 holds to fill). Terms of use still to draft.
 
