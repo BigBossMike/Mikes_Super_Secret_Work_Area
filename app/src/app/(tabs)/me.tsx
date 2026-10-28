@@ -12,7 +12,7 @@ export default function Me() {
   return (
     <Screen inTabs back={false} title="Me">
       <Row gap={12}>
-        <Avatar name={u.name} hue={210} size={72} />
+        <Avatar name={u.name} uri={u.photo} hue={210} size={72} />
         <View style={{ flex: 1, gap: 6 }}>
           <T variant="big">{u.name}</T>
           <Row wrap>

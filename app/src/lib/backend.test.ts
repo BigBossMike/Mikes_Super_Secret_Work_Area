@@ -59,6 +59,8 @@ describe("database rows to screen state", () => {
     expect(u.keepSchoolOut).toBe(true);
     expect(u.background).toBe("Samoan");
     expect(u.age).toBeGreaterThanOrEqual(17);
+    expect(u.photoPath).toBe(profile.photo_url);
+    expect(u.photo).toBeNull();
   });
   it("maps a guardian link", () => {
     expect(guardianFromRow(null, "").status).toBe("none");
@@ -69,10 +71,10 @@ describe("database rows to screen state", () => {
   it("keeps people anonymous until they agree", () => {
     const asking: MyMatchRow = { request_id: "r1", status: "asking", score: null, reasons: [], candidate_id: null, first_name: null, age: null, suburb: null, photo_url: null };
     expect(matchFromRow(asking)).toEqual({ match: { id: "r1", score: 0, why: [], distanceKm: 0, status: "asking" }, person: null });
-    const agreed: MyMatchRow = { ...asking, status: "agreed", score: 91, reasons: ["Both into football", "3 km apart"], candidate_id: "c1", first_name: "Jordan", age: 17, suburb: "Toowong" };
+    const agreed: MyMatchRow = { ...asking, status: "agreed", score: 91, reasons: ["Both into football", "3 km apart"], candidate_id: "c1", first_name: "Jordan", age: 17, suburb: "Toowong", photo_url: "c1/abc.jpg" };
     const m = matchFromRow(agreed);
     expect(m.match).toEqual({ id: "r1", score: 91, why: ["Both into football", "3 km away"], distanceKm: 3, status: "agreed" });
-    expect(m.person).toMatchObject({ id: "r1", name: "Jordan", age: 17, suburb: "Toowong" });
+    expect(m.person).toMatchObject({ id: "r1", name: "Jordan", age: 17, suburb: "Toowong", photoPath: "c1/abc.jpg" });
     expect(matchFromRow({ ...asking, status: "expired" }).match.status).toBe("passed");
   });
   it("maps a request to be put forward", () => {

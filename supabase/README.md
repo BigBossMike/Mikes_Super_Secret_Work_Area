@@ -8,6 +8,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 |---|---|
 | `migrations/0001_init.sql` | Builds the whole database: tables, safety rules, matching, and permissions. |
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
+| `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
 | `functions/verify-stub/index.ts` | Pilot-only: marks a person verified from the date of birth they type. Off unless the secret `STUB_VERIFY_ENABLED` is `true`. |
@@ -55,6 +56,7 @@ These are checked by the database itself, so they hold even if someone tampers w
 - **Locked chat:** messages with phone numbers, emails, @handles, links or social app names are rejected until the two people have connected in person.
 - **Plans:** 1 free objective a month. After that, each one needs a $5 credit, unless the person is on the $10 unlimited plan.
 - **Contact details unlock only after an in-person connection**, which only the server can record.
+- **Profile photos** sit in a private bucket, in a folder named after the owner. A person can only upload into their own folder and only point their profile at their own folder. Reading follows the card rule: the person, people who agreed to talk to them, people who were asked about their plan, people they've met, and a teen's parent. The app shows photos through signed URLs that last an hour.
 
 ## "Hide me from my contacts": how the app must hash numbers
 
@@ -106,7 +108,6 @@ Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Step
 - **ID verification:** connect a provider (Stripe Identity, Persona, ConnectID, etc.). Its webhook should set `verified_at` and the real date of birth using the service role.
 - **Payments:** connect RevenueCat (or Apple and Google directly). Its webhook updates `subscriptions` and `objective_credits`.
 - **Push notifications** for new requests, messages and parent alerts.
-- **Photo storage:** a Supabase Storage bucket for profile photos, with rules matching `profile_card`.
 - **Objective screening:** check objectives for mocking or targeting language before anyone is asked.
 - **Matching runs only on suburb centres.** The suburb list only covers inner Brisbane so far. Add more before launch.
 - **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.

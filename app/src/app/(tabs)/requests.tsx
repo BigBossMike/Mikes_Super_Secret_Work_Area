@@ -12,7 +12,7 @@ export default function Requests() {
       {state.user.paused ? <Notice>You've paused being put forward. Turn it back on from Me.</Notice> : visibleRequests(state).map(r => (
         <Card key={r.id}>
           <Row gap={12} style={{ alignItems: "flex-start" }}>
-            <Avatar name={r.name} hue={r.hue} />
+            <Avatar name={r.name} uri={r.photo} hue={r.hue} />
             <View style={{ flex: 1, gap: 6 }}>
               <T variant="bold">{r.name}, {r.age}</T>
               <T variant="small">is looking for</T>

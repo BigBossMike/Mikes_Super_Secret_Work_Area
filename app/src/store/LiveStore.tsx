@@ -11,6 +11,8 @@ import type { ProfileFields } from "@/backend/types";
 import { useToast } from "@/components/ui";
 import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
+import { newPhotoPath, PHOTO_URL_TTL_S } from "@/lib/photos";
+import { fromBase64 } from "@/lib/sha256";
 import { defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
 import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
@@ -23,7 +25,7 @@ function empty(): State {
   const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
   return {
     user: { name: "", dob: "", age: null, verified: false, suburb: "Paddington", interests: [], times: [], school: "", background: "",
-      keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
+      keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null, photoPath: null },
     guardian: guardianFromRow(null, ""),
     plan: "free", credits: 0, used: 0, remaining: 1,
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
@@ -35,7 +37,7 @@ function empty(): State {
 /** Everything the profile screen can change, as the database wants it. */
 function profileFields(u: User): ProfileFields {
   return {
-    first_name: u.name, photo_url: null, suburb: u.suburb, interests: u.interests, free_times: u.times,
+    first_name: u.name, photo_url: u.photoPath ?? null, suburb: u.suburb, interests: u.interests, free_times: u.times,
     school: u.school || null, keep_school_out: u.keepSchoolOut, workplace: u.workplace || null, keep_workplace_out: u.keepWorkplaceOut,
     match_age_min: u.ageMin, match_age_max: u.ageMax, hide_contacts: u.hideContacts, discreet_notifications: u.discreet,
     can_be_put_forward: !u.paused, date_of_birth: u.dob,
@@ -59,6 +61,25 @@ function useLiveStore(): Store {
   }, []);
   const fail = (e: unknown) => toast(friendlyError(e));
 
+  // Photos are stored as paths; the screens need URLs. Signed URLs are cached until just before they expire.
+  const photoCache = useRef<Record<string, { url: string; until: number }>>({});
+  const photoUrl = (path: string | null | undefined) => (path && photoCache.current[path]?.url) || null;
+  const resolvePhotos = useCallback(async (paths: string[]) => {
+    const now = Date.now();
+    const missing = [...new Set(paths)].filter(p => !(photoCache.current[p]?.until > now));
+    if (missing.length) {
+      try {
+        const urls = await backend.photoUrls(missing);
+        Object.entries(urls).forEach(([p, url]) => { photoCache.current[p] = { url, until: now + (PHOTO_URL_TTL_S - 300) * 1000 }; });
+      } catch { /* photos are nice to have; the initial shows instead */ }
+    }
+    update(s => {
+      s.user.photo = photoUrl(s.user.photoPath);
+      Object.values(s.people ?? {}).forEach(p => { p.photo = photoUrl(p.photoPath); });
+      s.requests.forEach(r => { r.photo = photoUrl(s.people?.[r.id]?.photoPath); });
+    });
+  }, [backend, update]);
+
   // ---- Loading -------------------------------------------------------------
 
   const guardianNameKey = () => `intro.guardianName.${me.current}`;
@@ -71,14 +92,16 @@ function useLiveStore(): Store {
       s.matches = mapped.map(m => m.match);
       mapped.forEach(m => { if (m.person) s.people![m.person.id] = m.person; });
     });
-  }, [backend, update]);
+    await resolvePhotos(mapped.map(m => m.person?.photoPath).filter((p): p is string => Boolean(p)));
+  }, [backend, update, resolvePhotos]);
 
   const loadRequests = useCallback(async () => {
     const rows = await backend.myRequests();
     rows.forEach(r => { otherUser.current[r.request_id] = r.requester_id; });
     const mapped = rows.map(requestFromRow);
     update(s => { s.requests = mapped.map(m => m.request); mapped.forEach(m => { s.people![m.person.id] = m.person; }); });
-  }, [backend, update]);
+    await resolvePhotos(mapped.map(m => m.person.photoPath).filter((p): p is string => Boolean(p)));
+  }, [backend, update, resolvePhotos]);
 
   const loadConnections = useCallback(async () => {
     const rows = await backend.myConnections();
@@ -103,7 +126,7 @@ function useLiveStore(): Store {
     guardianLinkId.current = link?.id ?? null;
     update(s => {
       s.session = "in"; s.hasProfile = true;
-      s.user = userFromProfile(profile, background);
+      s.user = { ...userFromProfile(profile, background), photo: photoUrl(profile.photo_url) };
       s.guardian = guardianFromRow(link, guardianName ?? "");
       s.plan = allowance.plan; s.used = allowance.used_this_month; s.credits = allowance.extra_credits; s.remaining = allowance.remaining;
       s.objective = objective ? objectiveFromRow(objective, MONTH_NAME) : null;
@@ -114,8 +137,9 @@ function useLiveStore(): Store {
     });
     await Promise.all([objective ? loadMatches(objective.id) : Promise.resolve(), loadRequests()]);
     await loadConnections();
+    await resolvePhotos(profile.photo_url ? [profile.photo_url] : []);
     return { hasProfile: true };
-  }, [backend, update, loadMatches, loadRequests, loadConnections]);
+  }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos]);
 
   useEffect(() => {
     loadAll().catch(fail);
@@ -206,6 +230,26 @@ function useLiveStore(): Store {
           await backend.saveBackground(u.background);
         }
         await loadAll();
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
+
+    async setPhoto(photo) {
+      const uid = me.current;
+      if (!uid) return false;
+      const old = ref.current.user.photoPath ?? null;
+      try {
+        let path: string | null = null;
+        if (photo) {
+          path = newPhotoPath(uid);
+          await backend.uploadPhoto(path, fromBase64(photo.base64));
+          // Show the local file straight away; the signed URL replaces it on the next load.
+          photoCache.current[path] = { url: photo.uri, until: Date.now() + 10 * 60 * 1000 };
+        }
+        // Before the profile row exists (sign-up), the path rides along when the profile is saved.
+        if (ref.current.hasProfile) await backend.updateProfile({ photo_url: path });
+        update(s => { s.user.photoPath = path; s.user.photo = photo?.uri ?? null; });
+        if (old && old !== path) backend.removePhoto(old).catch(() => {});
         return true;
       } catch (e) { fail(e); return false; }
     },

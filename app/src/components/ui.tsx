@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { createContext, ReactNode, useCallback, useContext, useRef, useState } from "react";
 import {
-  KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleProp, StyleSheet, Switch,
+  Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleProp, StyleSheet, Switch,
   Text, TextInput, TextInputProps, TextProps, TextStyle, View, ViewStyle,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -128,9 +128,10 @@ export function Pill({ kind, label, icon }: { kind: "wait" | "yes" | "no" | "don
   );
 }
 
-export function Avatar({ name, hue, size = 44, anon }: { name?: string; hue?: number; size?: number; anon?: boolean }) {
+export function Avatar({ name, hue, size = 44, anon, uri }: { name?: string; hue?: number; size?: number; anon?: boolean; uri?: string | null }) {
   const t = useTheme();
   const base = { width: size, height: size, borderRadius: size / 2, alignItems: "center" as const, justifyContent: "center" as const };
+  if (uri && !anon) return <Image source={{ uri }} resizeMode="cover" accessibilityLabel={name ? `${name}'s photo` : "Photo"} style={[base, { backgroundColor: t.sunk }]} />;
   if (anon) return <View style={[base, { backgroundColor: t.sunk, borderWidth: 1.5, borderStyle: "dashed", borderColor: t.line }]}><Text style={{ color: t.muted, fontFamily: fonts.bodyBold, fontSize: size * 0.4 }}>?</Text></View>;
   return <View style={[base, { backgroundColor: avatarColor(hue ?? 210) }]}><Text style={{ color: "#fff", fontFamily: fonts.bodyBold, fontSize: size * 0.4 }}>{name?.[0] ?? "?"}</Text></View>;
 }

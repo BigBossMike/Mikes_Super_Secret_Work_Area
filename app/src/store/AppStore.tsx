@@ -40,7 +40,7 @@ function initial(): State {
   return {
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, suburb: "Paddington", interests: ["Football", "Music", "Movies"],
       times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false,
-      workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
+      workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null },
     guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
     plan: "free", credits: 0, used: 0,
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
@@ -172,6 +172,7 @@ function useDemoStore(): Store {
       if (yes) toast(`${ref.current.requests.find(x => x.id === id)?.name} can now message you.`);
     },
     setPaused(v) { update(s => { s.user.paused = v; }); },
+    async setPhoto(photo) { update(s => { s.user.photo = photo?.uri ?? null; }); return true; },
     setPrivacy(k, v) { update(s => { s.user[k] = v; }); },
     setAgeRange(min, max) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); },
     setGuardianSetting(k, v) { update(s => { s.guardian[k] = v; }); },

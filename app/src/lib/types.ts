@@ -10,6 +10,9 @@ export interface Person {
   interests: string[];
   times: string[];
   hue: number;
+  /** Live: where the profile photo is stored, and a URL the app can show (lib/photos.ts). */
+  photoPath?: string | null;
+  photo?: string | null;
   school?: string;
   workplace?: string;
   /** Ages this person is happy to be paired with (adults). Defaults to their age ±10. */

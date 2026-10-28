@@ -3,6 +3,7 @@ import { useState } from "react";
 import { View } from "react-native";
 import { LIVE } from "@/backend/client";
 import { AgeRange } from "@/components/AgeRange";
+import { PhotoPicker } from "@/components/PhotoPicker";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
 import { ageRangeLimits, effectiveAgeRange, isMinor } from "@/lib/age";
 import { INTERESTS, SUBURBS, TIMES } from "@/lib/data";
@@ -40,6 +41,7 @@ export default function Profile() {
   return (
     <Screen title="About you" footer={<Btn label={saving ? "Saving…" : "Save and continue"} disabled={saving} onPress={save} />}>
       <T muted>Your answers are how Intro finds good matches. Only your first name and photo are shown before you meet.</T>
+      <PhotoPicker name={name.trim() || u.name || "?"} uri={u.photo} onPicked={actions.setPhoto} />
       <Field label="First name" value={name} onChangeText={setName} maxLength={20} />
       <View style={{ gap: 8 }}><T variant="label">Suburb</T><Chips options={Object.keys(SUBURBS)} selected={[suburb]} onToggle={setSuburb} /></View>
       <View style={{ gap: 8 }}><T variant="label">Things you're into</T><Chips options={INTERESTS} selected={u.interests} onToggle={v => actions.toggleInList("interests", v)} /></View>

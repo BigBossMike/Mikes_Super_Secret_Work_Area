@@ -55,7 +55,7 @@ Mike's side (accounts; each unblocks a step below):
 
 Claude's side (code), in order:
 
-1. Profile photos: Supabase Storage bucket with rules matching `profile_card`, upload from the phone, shown on cards and Me.
+1. Profile photos: done 28th October 2026 (migration 0003, `app/src/components/PhotoPicker.tsx`, `scripts/live-photos.mjs` passes). Not yet tried on a phone.
 2. Push notifications: expo-notifications, device tokens stored, a server function that sends for requests, answers, messages and parent alerts. Discreet mode means the text is only "Intro: you have an update".
 3. Brisbane-wide suburb list (Greater Brisbane) in the migration and the app. Today it is inner Brisbane only.
 4. Parent mode in the same app: a parent signs in with the invited number and sees the parent screens, never chats.

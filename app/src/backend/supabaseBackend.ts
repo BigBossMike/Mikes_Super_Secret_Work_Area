@@ -2,6 +2,7 @@
 // function names match supabase/migrations/0001_init.sql exactly.
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { normalisePhone } from "@/lib/phoneHash";
+import { PHOTO_BUCKET, PHOTO_URL_TTL_S } from "@/lib/photos";
 import type {
   AllowanceRow, ConnectionRow, ContactRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow,
   ObjectiveRow, ProfileCardRow, ProfileFields, ProfileRow, ReportReason,
@@ -240,6 +241,29 @@ export class SupabaseBackend {
   async profileCard(userId: string): Promise<ProfileCardRow | null> {
     const rows = await this.rpc<ProfileCardRow[]>("profile_card", { p_user: userId });
     return rows[0] ?? null;
+  }
+
+  // ---- Photos ----------------------------------------------------------------
+
+  /** Uploads a JPEG to my folder in the photos bucket (the path comes from lib/photos.ts newPhotoPath). */
+  async uploadPhoto(path: string, bytes: Uint8Array): Promise<void> {
+    const { error } = await this.db.storage.from(PHOTO_BUCKET).upload(path, bytes, { contentType: "image/jpeg", upsert: false });
+    if (error) throw error;
+  }
+
+  async removePhoto(path: string): Promise<void> {
+    const { error } = await this.db.storage.from(PHOTO_BUCKET).remove([path]);
+    if (error) throw error;
+  }
+
+  /** Short-lived URLs for the photos I'm allowed to see, keyed by path. Paths I may not see are left out. */
+  async photoUrls(paths: string[]): Promise<Record<string, string>> {
+    if (!paths.length) return {};
+    const { data, error } = await this.db.storage.from(PHOTO_BUCKET).createSignedUrls(paths, PHOTO_URL_TTL_S);
+    if (error) throw error;
+    const out: Record<string, string> = {};
+    for (const r of data ?? []) if (r.path && r.signedUrl && !r.error) out[r.path] = r.signedUrl;
+    return out;
   }
 
   // ---- Safety ----------------------------------------------------------------

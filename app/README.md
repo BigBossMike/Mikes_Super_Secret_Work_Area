@@ -10,8 +10,9 @@ The real Intro app, built with Expo (React Native) so one codebase runs on iPhon
 |---|---|
 | `src/app/` | The screens. Each file is one screen, for example `verify.tsx` is the ID check and `chat/[id].tsx` is a chat. |
 | `src/app/(tabs)/` | The three tabs: Home, Requests, Me. |
-| `src/components/ui.tsx` | Shared building blocks: buttons, cards, chips, toggles. |
-| `src/lib/` | The rules: age bands, matching, blocking contact details in chat, the connect codes and checks. Covered by tests. |
+| `src/components/ui.tsx` | Shared building blocks: buttons, cards, chips, toggles, the avatar (initial or photo). |
+| `src/components/PhotoPicker.tsx` | Profile photo: camera or library, squared and shrunk on the phone to 512 px JPEG. |
+| `src/lib/` | The rules: age bands, matching, blocking contact details in chat, the connect codes and checks, photo paths. Covered by tests. |
 | `src/handshake/` | The in-person connect: Bluetooth (`ble.ts`), location, the server calls (`api.ts`, with a stand-in for the demo build) and the `useHandshake` hook the Connect screens use. |
 | `src/store/` | What the app remembers. `context.ts` is the shape the screens see; `AppStore.tsx` fills it with sample people (demo); `LiveStore.tsx` fills it from Supabase; `liveMapping.ts` turns database rows into screen state (tested). |
 | `src/backend/` | Every Supabase call (`supabaseBackend.ts`), the connection (`client.ts`), row types and plain-English error messages. |
@@ -40,6 +41,7 @@ What changes in live mode:
 - Order at sign-up: age, then profile, then the parent sign-off for under-18s (the database needs the profile first).
 - "Confirm my age" uses the typed date of birth. The server's `verify-stub` function marks the person verified. Pilot only: the ID-check provider replaces it before launch.
 - Matches, requests, chats, connections and the plan allowance come from the database. New requests and chat messages arrive live; answers to your own plan are checked every 5 seconds.
+- Profile photos upload to a private Storage bucket; the database decides who may see each one (same rule as the person's card). `scripts/live-photos.mjs` checks those rules against the project.
 - Payments show "not set up yet" until in-app purchases are built.
 
 ## Connect in person: demo and live

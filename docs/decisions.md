@@ -47,3 +47,5 @@ A record of what Mike decided while building the first version (26 October 2026)
 - App keys: the project uses the new `sb_publishable_` key in place of the legacy anon key. The functions still read `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from the runtime, which works.
 - Expo Go on iPhone needs the same Expo account on the phone and the laptop (`npx expo login --no-browser -u <user>`; the browser login fails on Windows). Dev server started with `--port 8082` once the first one was in use.
 - Mike opened the live app on his iPhone: sign-in, age, profile, Home. Approved. Next: the launch build order in `CLAUDE.md`.
+- Profile photos built: private `photos` bucket, folder per person, read rule = card rule (migration 0003). The app resizes to 512 px JPEG on the phone (expo-image-picker, expo-image-manipulator) and shows photos through hour-long signed URLs. `profiles.photo_url` holds the storage path, not a link. Rules checked live with `app/scripts/live-photos.mjs`.
+- Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.

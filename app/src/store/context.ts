@@ -4,6 +4,7 @@
 import { createContext, useContext } from "react";
 import type { Contact } from "@/handshake/api";
 import { ageFrom, agesCompatible } from "@/lib/age";
+import type { PickedPhoto } from "@/lib/photos";
 import { SAMPLE_PEOPLE } from "@/lib/data";
 import type { Match, Objective, ObjectiveDraft, Person } from "@/lib/types";
 
@@ -15,6 +16,8 @@ export interface Chat { msgs: ChatMessage[]; replyIdx: number; connected: boolea
 export interface IncomingRequest {
   id: string; name: string; age: number; suburb: string; hue: number; group: number;
   text: string; why: string[]; status: "pending" | "accepted" | "declined";
+  /** A URL for the requester's photo, when there is one. */
+  photo?: string | null;
 }
 export interface Guardian {
   name: string; rel: "Mum" | "Dad" | "Guardian"; phone: string; status: "none" | "sent" | "approved";
@@ -31,6 +34,10 @@ export interface User {
   discreet: boolean;
   /** Adults only: ages I'm happy to be paired with. Null means the default, my age ±10. */
   ageMin: number | null; ageMax: number | null;
+  /** A URL for my photo the app can show (demo: the local file). Null when there isn't one. */
+  photo: string | null;
+  /** Live: where the photo is stored (profiles.photo_url). */
+  photoPath?: string | null;
 }
 export type PrivacyKey = "keepSchoolOut" | "keepWorkplaceOut" | "hideContacts" | "discreet";
 
@@ -57,6 +64,8 @@ export interface Actions {
   sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "phone">): void;
   /** Saves the profile. Resolves true when saved (live: after the server accepted it). */
   saveProfile(p: Partial<User>): Promise<boolean>;
+  /** Sets or removes my profile photo. Live: uploads it and stores the path. Resolves true when done. */
+  setPhoto(photo: PickedPhoto | null): Promise<boolean>;
   toggleInList(key: "interests" | "times", v: string): void;
   setDraft(d: Partial<ObjectiveDraft>): void;
   pickType(id: string): void;

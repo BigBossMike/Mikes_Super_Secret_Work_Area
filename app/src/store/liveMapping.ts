@@ -31,6 +31,8 @@ export function userFromProfile(p: ProfileRow, background = ""): User {
     discreet: p.discreet_notifications,
     ageMin: p.match_age_min,
     ageMax: p.match_age_max,
+    photo: null,
+    photoPath: p.photo_url,
   };
 }
 
@@ -69,7 +71,7 @@ export function matchFromRow(m: MyMatchRow): { match: Match; person: Person | nu
       status: m.status === "agreed" ? "agreed" : m.status === "asking" ? "asking" : "passed",
     },
     person: agreed
-      ? { id: m.request_id, name: m.first_name!, lastName: "", age: m.age ?? 0, suburb: m.suburb ?? "", interests: [], times: [], hue: hueFor(m.candidate_id!) }
+      ? { id: m.request_id, name: m.first_name!, lastName: "", age: m.age ?? 0, suburb: m.suburb ?? "", interests: [], times: [], hue: hueFor(m.candidate_id!), photoPath: m.photo_url }
       : null,
   };
 }
@@ -88,7 +90,7 @@ export function requestFromRow(r: MyRequestRow): { request: IncomingRequest; per
       why: (r.reasons ?? []).filter(x => !/ km apart$/.test(x)),
       status: r.status === "asking" ? "pending" : r.status === "agreed" ? "accepted" : "declined",
     },
-    person: { id: r.request_id, name: r.first_name, lastName: "", age: r.age, suburb: r.suburb, interests: [], times: [], hue: hueFor(r.requester_id) },
+    person: { id: r.request_id, name: r.first_name, lastName: "", age: r.age, suburb: r.suburb, interests: [], times: [], hue: hueFor(r.requester_id), photoPath: r.photo_url },
   };
 }
 

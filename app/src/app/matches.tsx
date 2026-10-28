@@ -33,7 +33,7 @@ export default function Matches() {
         }
         return (
           <Card key={m.id}><Row gap={12} style={{ alignItems: "flex-start" }}>
-            <Avatar name={p.name} hue={p.hue} />
+            <Avatar name={p.name} uri={p.photo} hue={p.hue} />
             <View style={{ flex: 1, gap: 6 }}>
               <Row style={{ justifyContent: "space-between" }}>
                 <T variant="bold">{p.name}, {p.age}</T>

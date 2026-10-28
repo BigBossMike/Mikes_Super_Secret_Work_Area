@@ -16,7 +16,7 @@ export default function Connected() {
   return (
     <Screen title="Connected" back={false} footer={<Btn label="Back to home" onPress={() => router.replace("/home")} />}>
       <View style={{ alignItems: "center", gap: 12 }}>
-        <Avatar name={p.name} hue={p.hue} size={72} />
+        <Avatar name={p.name} uri={p.photo} hue={p.hue} size={72} />
         <T variant="big">You've met {p.name}.</T>
       </View>
       <Card>
