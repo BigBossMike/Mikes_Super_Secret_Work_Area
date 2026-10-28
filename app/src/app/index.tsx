@@ -28,7 +28,7 @@ export default function Welcome() {
       <T variant="small" style={{ textAlign: "center" }}>16+ only. Photo ID check required. Under-18s and adults are never matched together.</T>
     </>}>
       <View style={{ gap: 18, paddingTop: 24 }}>
-        <Logo />
+        <Logo size={48} />
         <T variant="display">Real people.{"\n"}Real plans.{"\n"}<T variant="display" color={t.go}>Meet in person.</T></T>
         <T muted>Got a plan that needs one more? Extend a digital hand. Like putting your name down at the club, Intro pairs you with up to five people nearby who are keen too.</T>
         <View style={{ gap: 12 }}>
