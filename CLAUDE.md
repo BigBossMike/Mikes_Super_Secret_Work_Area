@@ -41,10 +41,27 @@ npm start           # Expo dev server; scan the QR code with Expo Go
 
 When changing a matching or privacy rule, change it in all three places (`app/src/lib`, `supabase/migrations`, `prototype/index.html`) and add tests.
 
-## Next steps
+## Next steps: launch build order (set 28th October 2026)
 
-1. Use the app live on a phone. The Supabase project (Sydney) is set up as of 28th October 2026: migrations pushed, both functions deployed, phone sign-in on with test numbers, `node app/scripts/live-smoke.mjs` passes. Settings are in app/.env.local (not committed). Start with `cd app && npx expo start --clear`, open in Expo Go, sign in with a test number, fix what the screens get wrong. Real SMS codes need Twilio under Authentication → Providers → Phone.
-2. Choose an ID check provider. Comparison and vendor questions in `docs/id-provider-comparison.md`.
-3. Test the Bluetooth connect on two real phones. The code and the QR fallback are built (`app/src/handshake/`), but Bluetooth needs a development build (`npx expo run:android`, `npx expo run:ios` or EAS Build) and tuning of the signal and distance limits.
-4. Set up in-app purchases.
-5. Get legal advice on age rules and privacy.
+The live app ran on Mike's phone on 28th October 2026 and he gave the go-ahead to build to launch.
+
+Mike's side (accounts; each unblocks a step below):
+
+1. Twilio account (twilio.com): an Australian sender, then Account SID, Auth Token and Messaging Service SID into Supabase → Authentication → Providers → Phone. Until then only the test numbers can sign in.
+2. ID check provider: Stripe Identity for the pilot, or quotes from Yoti and Persona first. Comparison and vendor questions in `docs/id-provider-comparison.md`. Stripe needs a Stripe account (Australia) and its test keys.
+3. Apple Developer Program (US$99 a year) and Google Play Console (US$25 once): TestFlight and internal testing, then the stores.
+4. RevenueCat account (free tier) for the $5 and $10 plans, after 3.
+5. Lawyer for the age rules, privacy policy and terms. Claude drafts, the lawyer reviews.
+
+Claude's side (code), in order:
+
+1. Profile photos: Supabase Storage bucket with rules matching `profile_card`, upload from the phone, shown on cards and Me.
+2. Push notifications: expo-notifications, device tokens stored, a server function that sends for requests, answers, messages and parent alerts. Discreet mode means the text is only "Intro: you have an update".
+3. Brisbane-wide suburb list (Greater Brisbane) in the migration and the app. Today it is inner Brisbane only.
+4. Parent mode in the same app: a parent signs in with the invited number and sees the parent screens, never chats.
+5. ID provider wired in place of verify-stub, once Mike has chosen (its webhook sets `verified_at` and the date of birth with the service role).
+6. EAS development build for the Bluetooth test on two phones; tune the signal and distance limits in `app/src/lib/handshake.ts` and the server function together.
+7. In-app purchases through RevenueCat; its webhook updates `subscriptions` and `objective_credits`.
+8. Objective screening for mocking or targeting language before anyone is asked.
+9. Store assets (icon, splash, listings, privacy labels), EAS production build, TestFlight pilot.
+10. Launch per `docs/launch-plan.md`.

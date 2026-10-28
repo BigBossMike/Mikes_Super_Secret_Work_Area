@@ -21,6 +21,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 15 | Matching is **Brisbane-wide**: "close enough, not next door". The database caps candidates at 25 km from the person's suburb; the app scores closer people higher but has no cutoff. Decided 27 October 2026. | Mike: the pool is the city, not the suburb. |
 | 16 | **Build and launch, 16+ as originally planned. No concierge pilot.** Market test is the app itself. Decided 27 October 2026 after `market-critique.md`. | Mike: a spreadsheet and WhatsApp don't test it; build, market, then fail if it fails. Worst case is an app nobody uses. |
 | 17 | Live app: sign in by mobile number and SMS code (Supabase phone auth). During the pilot the server function verify-stub marks people verified from the date of birth they type; it only works when a secret is set and is replaced by the ID provider before launch. Order at sign-up is age, profile, then parent sign-off. Decided 27 October 2026. | Parents claim invites by phone number, so phone sign-in is needed anyway. The database needs the profile before a parent invite or a verification. |
+| 18 | **Build to launch.** The live app ran on Mike's phone on 28th October 2026 ("Worked. Looks good. I like it. Let's make it happen"). Build order in `CLAUDE.md`, Next steps. | Mike: make it happen. |
 
 ## State at the end of the first session
 
@@ -44,4 +45,5 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Phone sign-in on. Test numbers with fixed codes: `+61491570101` to `+61491570106` (code 123456) for the smoke test, plus Mike's own mobile (code given in chat, not written down here). No SMS provider yet, so only those numbers can sign in.
 - `app/scripts/live-smoke.mjs`: ALL PASSED (sign-in, verify, objective, match, request, locked chat, QR handshake, unlocked details). Two fixes on the way: the contacts update grant needed `id` for upserts (migration 0002), and the script's objective text had a timestamp that read as a phone number.
 - App keys: the project uses the new `sb_publishable_` key in place of the legacy anon key. The functions still read `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from the runtime, which works.
-- Not yet done: the screens on a real phone in live mode, Twilio for real SMS, Bluetooth on two phones.
+- Expo Go on iPhone needs the same Expo account on the phone and the laptop (`npx expo login --no-browser -u <user>`; the browser login fails on Windows). Dev server started with `--port 8082` once the first one was in use.
+- Mike opened the live app on his iPhone: sign-in, age, profile, Home. Approved. Next: the launch build order in `CLAUDE.md`.
