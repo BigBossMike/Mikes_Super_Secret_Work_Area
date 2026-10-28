@@ -19,21 +19,24 @@ const projectId = (): string | null =>
 
 /** This phone's push token, asking permission the first time. Null when not allowed or not possible here. */
 export async function getPushToken(): Promise<string | null> {
+  // While developing, say why a phone didn't register (shows in the dev server's terminal).
+  const why = (msg: string) => { if (__DEV__) console.log(`[push] ${msg} (${Constants.executionEnvironment})`); return null; };
   if (Platform.OS !== "ios" && Platform.OS !== "android") return null;
   const id = projectId();
-  if (!id) return null;
+  if (!id) return why("no Expo project id in the app config");
   try {
     if (Platform.OS === "android") {
       await Notifications.setNotificationChannelAsync("default", { name: "Intro", importance: Notifications.AndroidImportance.HIGH });
     }
     let { status } = await Notifications.getPermissionsAsync();
     if (status !== "granted") status = (await Notifications.requestPermissionsAsync()).status;
-    if (status !== "granted") return null;
+    if (status !== "granted") return why(`notifications not allowed (${status})`);
     const token = (await Notifications.getExpoPushTokenAsync({ projectId: id })).data;
     await AsyncStorage.setItem(TOKEN_KEY, token).catch(() => {});
+    why("registered this phone");
     return token;
-  } catch {
-    return null;
+  } catch (e) {
+    return why(`couldn't get a push token: ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
