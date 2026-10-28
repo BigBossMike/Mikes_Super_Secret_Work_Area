@@ -2,7 +2,7 @@
 // each notification's data.url (supabase/migrations/0005_push.sql); the app only
 // follows paths on this list, so a notification can never open anything else.
 
-const FIXED = new Set(["/home", "/requests", "/matches", "/parent"]);
+const FIXED = new Set(["/home", "/requests", "/matches", "/parent-home"]);
 const CHAT = /^\/chat\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
 export function routeFromData(data: unknown): string | null {

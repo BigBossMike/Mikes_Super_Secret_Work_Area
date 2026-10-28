@@ -13,7 +13,7 @@ export default function GuardianSignOff() {
 
   return (
     <Screen title="Parent or guardian" footer={<Btn label="Continue" disabled={g.status !== "approved"} onPress={() => router.replace(LIVE ? "/home" : "/profile")} />}>
-      <T muted>You're under 18, so a parent or guardian needs to OK your account. They get the free Intro parent app.</T>
+      <T muted>You're under 18, so a parent or guardian needs to OK your account. They download Intro and sign in with their own mobile number.</T>
       <Field label="Their first name" value={name} onChangeText={setName} maxLength={20} />
       <T variant="label">They're your</T>
       <Chips options={["Mum", "Dad", "Guardian"]} selected={[rel]} onToggle={v => setRel(v as Guardian["rel"])} />

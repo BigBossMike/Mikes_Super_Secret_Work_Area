@@ -39,6 +39,19 @@ export interface User {
   /** Live: where the photo is stored (profiles.photo_url). */
   photoPath?: string | null;
 }
+/** Parent mode (live). */
+export interface ParentInvite { id: string; teenName: string; teenAge: number; rel: Guardian["rel"] }
+export interface TeenPlan { id: string; text: string; when: string; where: string; group: number }
+export interface TeenActivity { title: string; detail: string; at: string | null }
+export interface TeenMeetup { with: string; place: string; at: string | null }
+export interface ParentTeen {
+  linkId: string; id: string; name: string; age: number | null; photoPath: string | null; photo: string | null;
+  verified: boolean; paused: boolean; approveObjectives: boolean; notifyConnect: boolean; meetCheckin: boolean;
+  pending: TeenPlan[]; activity: TeenActivity[]; meetups: TeenMeetup[];
+}
+export interface ParentState { invites: ParentInvite[]; teens: ParentTeen[] }
+export type ParentSettingKey = "approveObjectives" | "notifyConnect" | "meetCheckin";
+
 export type PrivacyKey = "keepSchoolOut" | "keepWorkplaceOut" | "hideContacts" | "discreet";
 
 export interface State {
@@ -56,6 +69,8 @@ export interface State {
   /** Live app: sign-in state. The demo is always "in". */
   session: "loading" | "out" | "in";
   hasProfile: boolean;
+  /** Live app: invites waiting for me as a parent, and the teens I'm linked to. */
+  parent?: ParentState;
 }
 
 export interface Actions {
@@ -90,9 +105,21 @@ export interface Actions {
   reset(): void;
   // Live only. The demo returns at once.
   sendSignInCode(phone: string): Promise<string>;
-  checkSignInCode(phone: string, code: string): Promise<{ hasProfile: boolean }>;
-  refresh(): Promise<{ hasProfile: boolean }>;
+  checkSignInCode(phone: string, code: string): Promise<SignInResult>;
+  refresh(): Promise<SignInResult>;
+  // Parent mode. Live only; the demo shows a note instead.
+  refreshParent(): Promise<void>;
+  acceptInvite(id: string): Promise<boolean>;
+  declineInvite(id: string): Promise<boolean>;
+  decideTeenPlan(objectiveId: string, approve: boolean): Promise<boolean>;
+  setTeenSetting(linkId: string, k: ParentSettingKey, v: boolean): void;
+  setTeenPaused(teenId: string, paused: boolean): void;
 }
+
+/** After sign-in: does this person have their own profile, and are they someone's parent (or invited to be)? */
+export interface SignInResult { hasProfile: boolean; isParent: boolean }
+
+export const isParentUser = (s: State) => Boolean(s.parent && (s.parent.invites.length || s.parent.teens.length));
 
 export interface Store { state: State; actions: Actions }
 

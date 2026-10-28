@@ -24,8 +24,9 @@ export default function SignIn() {
     if (!sentTo) return;
     setError(""); setBusy(true);
     try {
-      const { hasProfile } = await actions.checkSignInCode(sentTo, code);
-      router.replace(hasProfile ? "/home" : "/verify");
+      const { hasProfile, isParent } = await actions.checkSignInCode(sentTo, code);
+      // A parent with no profile of their own goes to the parent screen.
+      router.replace(hasProfile ? "/home" : isParent ? "/parent-home" : "/verify");
     } catch (e) { setError(e instanceof Error ? e.message : "That code didn't work. Try again."); }
     setBusy(false);
   };

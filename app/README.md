@@ -13,6 +13,7 @@ The real Intro app, built with Expo (React Native) so one codebase runs on iPhon
 | `src/components/ui.tsx` | Shared building blocks: buttons, cards, chips, toggles, the avatar (initial or photo). |
 | `src/components/PhotoPicker.tsx` | Profile photo: camera or library, squared and shrunk on the phone to 512 px JPEG. |
 | `src/lib/` | The rules: age bands, matching, blocking contact details in chat, the connect codes and checks, photo paths. Covered by tests. |
+| `src/app/parent-home.tsx` | Parent mode: a parent signs in with the number their teen entered, approves the invite, then sees plans waiting for their OK, controls, meet-ups and activity. Never chats. |
 | `src/notifications/` | Push notifications: register the phone (`push.ts`) and open the right screen on tap (`PushRouting.tsx`). The database sends them. |
 | `src/handshake/` | The in-person connect: Bluetooth (`ble.ts`), location, the server calls (`api.ts`, with a stand-in for the demo build) and the `useHandshake` hook the Connect screens use. |
 | `src/store/` | What the app remembers. `context.ts` is the shape the screens see; `AppStore.tsx` fills it with sample people (demo); `LiveStore.tsx` fills it from Supabase; `liveMapping.ts` turns database rows into screen state (tested). |
@@ -44,6 +45,7 @@ What changes in live mode:
 - Matches, requests, chats, connections and the plan allowance come from the database. New requests and chat messages arrive live; answers to your own plan are checked every 5 seconds.
 - Profile photos upload to a private Storage bucket; the database decides who may see each one (same rule as the person's card). `scripts/live-photos.mjs` checks those rules against the project.
 - Push notifications: the phone registers after sign-in and the database sends them (requests, answers, messages, parent decisions and alerts). Expo Go can't receive them; they need the development build below. `scripts/live-push.mjs` checks the wording and that the database reaches Expo.
+- Parents use the same app. Signing in with the number a teen entered shows the invite, then the parent screen. A parent needs no profile of their own ("Use Intro for myself" starts one). `scripts/live-parent.mjs` checks the parent rules.
 - Payments show "not set up yet" until in-app purchases are built.
 
 ## Connect in person: demo and live

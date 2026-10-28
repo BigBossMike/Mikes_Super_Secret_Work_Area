@@ -5,14 +5,14 @@ import * as Notifications from "expo-notifications";
 import { type Href, router, usePathname } from "expo-router";
 import { useEffect, useRef } from "react";
 import { routeFromData } from "@/lib/pushRoutes";
-import { useApp } from "@/store/AppStore";
+import { isParentUser, useApp } from "@/store/AppStore";
 
 export function PushRouting() {
   const { state } = useApp();
   const path = usePathname();
   const here = useRef(path);
   here.current = path;
-  const ready = state.session === "in" && state.hasProfile;
+  const ready = state.session === "in" && (state.hasProfile || isParentUser(state));
   const readyRef = useRef(ready);
   readyRef.current = ready;
   const pending = useRef<string | null>(null);

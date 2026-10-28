@@ -704,7 +704,7 @@ const SCREENS = {
       : P.status === "approved" ? `<div class="notice ok">${esc(P.name)} approved your account.</div>` : "";
     return `<div class="scr">${top("Parent or guardian", "verify")}
     <div class="body">
-      <p class="muted">You're under 18, so a parent or guardian needs to OK your account. They get the free Intro parent app.</p>
+      <p class="muted">You're under 18, so a parent or guardian needs to OK your account. They download Intro and sign in with their own mobile number.</p>
       <label class="f">Their first name<input class="input" id="parName" value="${esc(P.name)}" maxlength="20"></label>
       <label class="f">They're your<select class="input" id="parRel">${["Mum", "Dad", "Guardian"].map(r => `<option ${r === P.rel ? "selected" : ""}>${r}</option>`).join("")}</select></label>
       <label class="f">Their mobile<input class="input" id="parPhone" value="${esc(P.phone)}" inputmode="tel"></label>

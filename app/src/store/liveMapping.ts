@@ -1,9 +1,12 @@
 // Turns database rows into what the screens show. Pure functions, tested in
 // backend.test.ts, so the screens never change when the database does.
-import type { ConnectionRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow, ObjectiveRow, ProfileRow } from "@/backend/types";
+import type {
+  ConnectionRow, GuardianActivityRow, GuardianNotificationRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow, ObjectiveRow,
+  ParentInviteRow, ProfileRow, TeenProfileRow,
+} from "@/backend/types";
 import { ageFrom } from "@/lib/age";
 import type { Match, Objective, Person } from "@/lib/types";
-import type { Chat, ChatMessage, Guardian, IncomingRequest, User } from "./context";
+import type { Chat, ChatMessage, Guardian, IncomingRequest, ParentInvite, ParentTeen, User } from "./context";
 
 /** A steady avatar colour for a person, from their id. */
 export function hueFor(id: string): number {
@@ -49,6 +52,25 @@ export function guardianFromRow(g: GuardianRow | null, name: string): Guardian {
     approveObjectives: g.approve_objectives,
     notifyConnect: g.notify_connect,
     meetCheckin: g.meet_checkin,
+  };
+}
+
+export function inviteFromRow(r: ParentInviteRow): ParentInvite {
+  return { id: r.invite_id, teenName: r.teen_first_name, teenAge: r.teen_age, rel: REL[r.relationship] };
+}
+
+/** One teen on the parent screen, from their link, profile, waiting plans, activity and meet-up alerts. */
+export function teenFromRows(link: GuardianRow, p: TeenProfileRow, pending: ObjectiveRow[], activity: GuardianActivityRow[], meetups: GuardianNotificationRow[]): ParentTeen {
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v : null);
+  return {
+    linkId: link.id, id: p.id, name: p.first_name, age: ageFrom(p.date_of_birth), photoPath: p.photo_url, photo: null,
+    verified: p.verified_at !== null, paused: !p.can_be_put_forward,
+    approveObjectives: link.approve_objectives, notifyConnect: link.notify_connect, meetCheckin: link.meet_checkin,
+    pending: pending.filter(o => o.owner_id === p.id && o.status === "pending_guardian")
+      .map(o => ({ id: o.id, text: o.text, when: o.when_text ?? "", where: o.where_text ?? "", group: o.group_size })),
+    activity: activity.map(a => ({ title: a.title, detail: a.detail ?? "", at: a.happened_at })),
+    meetups: meetups.filter(n => n.teen_id === p.id && n.kind === "meetup")
+      .map(n => ({ with: str(n.payload.with_first_name) ?? "someone", place: str(n.payload.place) ?? "Place not given", at: str(n.payload.meet_at) })),
   };
 }
 

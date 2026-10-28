@@ -4,8 +4,8 @@ import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { normalisePhone } from "@/lib/phoneHash";
 import { PHOTO_BUCKET, PHOTO_URL_TTL_S } from "@/lib/photos";
 import type {
-  AllowanceRow, ConnectionRow, ContactRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow,
-  ObjectiveRow, ProfileCardRow, ProfileFields, ProfileRow, ReportReason,
+  AllowanceRow, ConnectionRow, ContactRow, GuardianActivityRow, GuardianNotificationRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow,
+  ObjectiveRow, ParentInviteRow, ProfileCardRow, ProfileFields, ProfileRow, ReportReason, TeenProfileRow,
 } from "./types";
 
 export interface ObjectiveDraftRow { type: string; text: string; when_text: string | null; where_text: string | null; group_size: number }
@@ -142,6 +142,54 @@ export class SupabaseBackend {
 
   async guardianDecideObjective(objectiveId: string, approve: boolean): Promise<void> {
     must(await this.db.rpc("guardian_decide_objective", { p_objective: objectiveId, p_approve: approve }));
+  }
+
+  // ---- Parent mode (supabase/migrations/0006_parent_mode.sql) ----------------
+
+  /** Invites to approve a teen, sent to the mobile number I signed in with. */
+  async myParentInvites(): Promise<ParentInviteRow[]> {
+    return (await this.rpc<ParentInviteRow[] | null>("my_parent_invites")) ?? [];
+  }
+
+  async declineParentInvite(inviteId: string): Promise<void> {
+    await this.rpc("decline_parent_invite", { p_invite: inviteId });
+  }
+
+  /** The teens I'm the approved parent of. */
+  async myTeenLinks(): Promise<GuardianRow[]> {
+    const id = await this.userId();
+    if (!id) return [];
+    return must(await this.db.from("guardians").select("*").eq("guardian_id", id).eq("status", "approved")
+      .order("approved_at", { ascending: true }).returns<GuardianRow[]>());
+  }
+
+  async teenProfiles(ids: string[]): Promise<TeenProfileRow[]> {
+    if (!ids.length) return [];
+    return must(await this.db.from("profiles").select("id, first_name, date_of_birth, photo_url, can_be_put_forward, verified_at")
+      .in("id", ids).returns<TeenProfileRow[]>());
+  }
+
+  /** Plans my teens have set that are waiting for my OK. */
+  async teenPendingPlans(ids: string[]): Promise<ObjectiveRow[]> {
+    if (!ids.length) return [];
+    return must(await this.db.from("objectives").select("*").in("owner_id", ids).eq("status", "pending_guardian")
+      .order("created_at", { ascending: false }).returns<ObjectiveRow[]>());
+  }
+
+  async guardianActivity(teenId: string): Promise<GuardianActivityRow[]> {
+    return (await this.rpc<GuardianActivityRow[] | null>("guardian_activity", { p_teen: teenId })) ?? [];
+  }
+
+  /** Meet-ups my teens have shared with me, newest first. */
+  async myMeetupAlerts(): Promise<GuardianNotificationRow[]> {
+    const id = await this.userId();
+    if (!id) return [];
+    return must(await this.db.from("guardian_notifications").select("*").eq("guardian_id", id).eq("kind", "meetup")
+      .order("created_at", { ascending: false }).limit(20).returns<GuardianNotificationRow[]>());
+  }
+
+  async guardianSetPaused(teenId: string, paused: boolean): Promise<void> {
+    await this.rpc("guardian_set_paused", { p_teen: teenId, p_paused: paused });
   }
 
   // ---- Objectives and matches ------------------------------------------------

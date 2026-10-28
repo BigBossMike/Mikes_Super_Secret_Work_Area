@@ -37,6 +37,42 @@ export interface GuardianRow {
   approved_at: string | null;
 }
 
+/** An invite to approve a teen, addressed to my mobile number (my_parent_invites). */
+export interface ParentInviteRow {
+  invite_id: string;
+  teen_first_name: string;
+  teen_age: number;
+  relationship: GuardianRow["relationship"];
+  created_at: string;
+}
+
+/** What a parent can read of their teen's profile. */
+export interface TeenProfileRow {
+  id: string;
+  first_name: string;
+  date_of_birth: string;
+  photo_url: string | null;
+  can_be_put_forward: boolean;
+  verified_at: string | null;
+}
+
+export interface GuardianActivityRow {
+  kind: string;
+  title: string;
+  detail: string | null;
+  happened_at: string | null;
+}
+
+export interface GuardianNotificationRow {
+  id: string;
+  guardian_id: string;
+  teen_id: string;
+  kind: "objective_pending" | "connected" | "meetup" | "report";
+  payload: Record<string, unknown>;
+  created_at: string;
+  read_at: string | null;
+}
+
 export interface AllowanceRow {
   plan: "free" | "unlimited";
   used_this_month: number;

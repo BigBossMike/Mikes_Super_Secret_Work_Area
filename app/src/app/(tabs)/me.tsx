@@ -46,6 +46,15 @@ export default function Me() {
           <Btn small variant="ghost" label={`See what ${g.name} sees`} onPress={() => router.push("/parent")} />
         </Card>
       )}
+      {state.parent && (state.parent.teens.length > 0 || state.parent.invites.length > 0) && (
+        <Card>
+          <T variant="h3">Parent</T>
+          <T variant="small">{state.parent.invites.length
+            ? `${state.parent.invites.map(i => i.teenName).join(" and ")} asked you to approve their account.`
+            : `You're the parent on ${state.parent.teens.map(t => t.name).join(" and ")}'s account.`}</T>
+          <Btn small variant="ghost" label="Open the parent screen" onPress={() => router.push("/parent-home")} />
+        </Card>
+      )}
       <Card>
         <T variant="h3">Plan</T>
         <T variant="small">{state.plan === "unlimited" ? "Unlimited objectives, $10 a month." : `Free: 1 objective a month${state.credits ? ` plus ${state.credits} extra` : ""}.`}</T>

@@ -14,7 +14,8 @@ import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, t
 import { LiveProvider } from "./LiveStore";
 
 export { MONTH_NAME, personById, useApp, visibleRequests } from "./context";
-export type { Actions, Chat, ChatMessage, Guardian, IncomingRequest, Plan, PrivacyKey, SearchPhase, State, Store, User } from "./context";
+export { isParentUser } from "./context";
+export type { Actions, Chat, ChatMessage, Guardian, IncomingRequest, ParentInvite, ParentTeen, Plan, PrivacyKey, SearchPhase, State, Store, User } from "./context";
 
 const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
 // Demo replies from the other person, by plan type
@@ -180,8 +181,15 @@ function useDemoStore(): Store {
     setPlan(p) { update(s => { s.plan = p; }); toast(p === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); },
     reset() { setState(initial()); },
     sendSignInCode: phone => Promise.resolve(phone),
-    checkSignInCode: () => Promise.resolve({ hasProfile: true }),
-    refresh: () => Promise.resolve({ hasProfile: true }),
+    checkSignInCode: () => Promise.resolve({ hasProfile: true, isParent: false }),
+    refresh: () => Promise.resolve({ hasProfile: true, isParent: false }),
+    // Parent mode needs the live app; the demo's parent view is the "See what Chris sees" screen.
+    refreshParent: () => Promise.resolve(),
+    acceptInvite: () => Promise.resolve(false),
+    declineInvite: () => Promise.resolve(false),
+    decideTeenPlan: () => Promise.resolve(false),
+    setTeenSetting() {},
+    setTeenPaused() {},
   };
 
   return useMemo(() => ({ state, actions }), [state]); // eslint-disable-line react-hooks/exhaustive-deps

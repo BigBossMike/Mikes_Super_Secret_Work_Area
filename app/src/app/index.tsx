@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { View } from "react-native";
 import { LIVE } from "@/backend/client";
 import { Btn, Logo, Row, Screen, T } from "@/components/ui";
-import { useApp } from "@/store/AppStore";
+import { isParentUser, useApp } from "@/store/AppStore";
 import { useTheme } from "@/theme";
 
 const STEPS = [
@@ -15,10 +15,12 @@ const STEPS = [
 export default function Welcome() {
   const t = useTheme();
   const { state } = useApp();
-  // Live app: someone already signed in with a profile goes straight to Home.
+  // Live app: someone already signed in with a profile goes straight to Home; a parent with no profile to the parent screen.
+  const parentOnly = !state.hasProfile && isParentUser(state);
   useEffect(() => {
     if (LIVE && state.session === "in" && state.hasProfile) router.replace("/home");
-  }, [state.session, state.hasProfile]);
+    else if (LIVE && state.session === "in" && parentOnly) router.replace("/parent-home");
+  }, [state.session, state.hasProfile, parentOnly]);
   const start = () => router.push(LIVE ? (state.session === "in" ? "/verify" : "/signin") : "/verify");
   return (
     <Screen back={false} footer={<>

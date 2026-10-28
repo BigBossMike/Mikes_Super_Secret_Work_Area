@@ -16,8 +16,8 @@ import { fromBase64 } from "@/lib/sha256";
 import { getPushToken, savedPushToken } from "@/notifications/push";
 import { CITY, defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
-import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
-import { chatFromRows, guardianFromRow, matchFromRow, messageFromRow, objectiveFromRow, relToDb, requestFromRow, userFromProfile } from "./liveMapping";
+import { type Actions, Ctx, type Guardian, MONTH_NAME, type ParentSettingKey, type SignInResult, type State, type Store, type User } from "./context";
+import { chatFromRows, guardianFromRow, inviteFromRow, matchFromRow, messageFromRow, objectiveFromRow, relToDb, requestFromRow, teenFromRows, userFromProfile } from "./liveMapping";
 
 const MATCH_POLL_MS = 5000;
 const GUARDIAN_POLL_MS = 4000;
@@ -79,6 +79,7 @@ function useLiveStore(): Store {
       s.user.photo = photoUrl(s.user.photoPath);
       Object.values(s.people ?? {}).forEach(p => { p.photo = photoUrl(p.photoPath); });
       s.requests.forEach(r => { r.photo = photoUrl(s.people?.[r.id]?.photoPath); });
+      s.parent?.teens.forEach(t => { t.photo = photoUrl(t.photoPath); });
     });
   }, [backend, update]);
 
@@ -114,13 +115,45 @@ function useLiveStore(): Store {
     return rows;
   }, [backend, update]);
 
-  /** Pulls everything for the signed-in person. Resolves with whether they have a profile yet. */
-  const loadAll = useCallback(async (): Promise<{ hasProfile: boolean }> => {
+  /** Parent mode: invites to me, and the teens I'm linked to with their plans, activity and meet-ups. Resolves true if there's anything. */
+  const loadParent = useCallback(async (): Promise<boolean> => {
+    const [invites, links] = await Promise.all([backend.myParentInvites(), backend.myTeenLinks()]);
+    const ids = links.map(l => l.teen_id);
+    const [profiles, pending, meetups, activity] = await Promise.all([
+      backend.teenProfiles(ids), backend.teenPendingPlans(ids), ids.length ? backend.myMeetupAlerts() : Promise.resolve([]),
+      Promise.all(ids.map(id => backend.guardianActivity(id).catch(() => []))),
+    ]);
+    const teens = links.flatMap((l, i) => {
+      const p = profiles.find(x => x.id === l.teen_id);
+      return p ? [teenFromRows(l, p, pending, activity[i], meetups)] : [];
+    });
+    update(s => { s.parent = { invites: invites.map(inviteFromRow), teens }; });
+    await resolvePhotos(teens.map(t => t.photoPath).filter((x): x is string => Boolean(x)));
+    return invites.length > 0 || teens.length > 0;
+  }, [backend, update, resolvePhotos]);
+
+  /** Push notifications: once per sign-in, ask permission (first time only) and register this phone. */
+  const registerPush = useCallback((userId: string) => {
+    if (pushUser.current === userId) return;
+    pushUser.current = userId;
+    getPushToken()
+      .then(t => (t ? backend.registerPushToken(t, Platform.OS === "ios" ? "ios" : "android") : undefined))
+      .catch(() => { pushUser.current = null; });
+  }, [backend]);
+
+  /** Pulls everything for the signed-in person. Resolves with whether they have a profile yet, and whether they're a parent. */
+  const loadAll = useCallback(async (): Promise<SignInResult> => {
     const session = await backend.session();
-    if (!session) { me.current = null; setState({ ...empty(), session: "out" }); return { hasProfile: false }; }
+    if (!session) { me.current = null; setState({ ...empty(), session: "out" }); return { hasProfile: false, isParent: false }; }
     me.current = session.user.id;
     const profile = await backend.myProfile();
-    if (!profile) { update(s => { s.session = "in"; s.hasProfile = false; }); return { hasProfile: false }; }
+    if (!profile) {
+      // A parent may have no profile of their own: they only use the parent screen.
+      const isParent = await loadParent().catch(() => false);
+      update(s => { s.session = "in"; s.hasProfile = false; });
+      if (isParent) registerPush(session.user.id);
+      return { hasProfile: false, isParent };
+    }
     const [background, link, allowance, objective, guardianName] = await Promise.all([
       backend.myBackground(), backend.myGuardianLink(), backend.allowance(), backend.currentObjective(),
       AsyncStorage.getItem(`intro.guardianName.${session.user.id}`).catch(() => null),
@@ -140,15 +173,10 @@ function useLiveStore(): Store {
     await Promise.all([objective ? loadMatches(objective.id) : Promise.resolve(), loadRequests()]);
     await loadConnections();
     await resolvePhotos(profile.photo_url ? [profile.photo_url] : []);
-    // Push notifications: once per sign-in, ask permission (first time only) and register this phone.
-    if (pushUser.current !== session.user.id) {
-      pushUser.current = session.user.id;
-      getPushToken()
-        .then(t => (t ? backend.registerPushToken(t, Platform.OS === "ios" ? "ios" : "android") : undefined))
-        .catch(() => { pushUser.current = null; });
-    }
-    return { hasProfile: true };
-  }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos]);
+    const isParent = await loadParent().catch(() => false);   // adults can be parents too
+    registerPush(session.user.id);
+    return { hasProfile: true, isParent };
+  }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos, loadParent, registerPush]);
 
   useEffect(() => {
     loadAll().catch(fail);
@@ -182,6 +210,11 @@ function useLiveStore(): Store {
         if (waitingSignOff) {
           const link = await backend.myGuardianLink();
           if (link?.status === "approved") { guardianLinkId.current = link.id; update(s => { s.guardian = guardianFromRow(link, s.guardian.name); }); toast(`${ref.current.guardian.name} approved your account.`); }
+          else if (!link) {   // they said it wasn't them: start again
+            guardianLinkId.current = null;
+            update(s => { s.guardian.status = "none"; });
+            toast(`${ref.current.guardian.name} didn't approve. Check the number and send it again.`);
+          }
         }
         if (waitingObjective) {
           const o = await backend.objective(state.objectiveId!);
@@ -381,11 +414,14 @@ function useLiveStore(): Store {
       const link = guardianLinkId.current;
       if (!link) return;
       backend.updateGuardianSettings(link, { [col]: v }).then(() => update(s => { s.guardian[k] = v; }))
-        .catch(() => toast(`Only ${ref.current.guardian.name} can change this, from the parent app.`));
+        .catch(() => toast(`Only ${ref.current.guardian.name} can change this, from their parent screen in Intro.`));
     },
     buyOne() { toast("Payments aren't set up yet. Coming with the app store release."); },
     setPlan() { toast("Payments aren't set up yet. Coming with the app store release."); },
     reset() {
+      // Signed out on screen straight away, so nothing redirects back to Home or the parent screen.
+      me.current = null;
+      setState({ ...empty(), session: "out" });
       (async () => {
         // This phone stops getting my notifications before I sign out.
         const t = await savedPushToken();
@@ -398,6 +434,39 @@ function useLiveStore(): Store {
     sendSignInCode: phone => backend.sendSignInCode(phone),
     async checkSignInCode(phone, code) { await backend.checkSignInCode(phone, code); return loadAll(); },
     refresh: () => loadAll(),
+
+    async refreshParent() { await loadParent().catch(fail); },
+    async acceptInvite(id) {
+      const name = ref.current.parent?.invites.find(i => i.id === id)?.teenName ?? "your teen";
+      try {
+        await backend.claimGuardianInvite(id);
+        await loadParent();
+        if (me.current) registerPush(me.current);
+        toast(`Approved. You're now linked to ${name}.`);
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
+    async declineInvite(id) {
+      try { await backend.declineParentInvite(id); await loadParent(); toast("Done. They'll be told to check the number."); return true; }
+      catch (e) { fail(e); return false; }
+    },
+    async decideTeenPlan(objectiveId, approve) {
+      try {
+        await backend.guardianDecideObjective(objectiveId, approve);
+        toast(approve ? "Approved. Intro is asking people now." : "Turned down.");
+        await loadParent();
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
+    setTeenSetting(linkId, k: ParentSettingKey, v) {
+      const col = { approveObjectives: "approve_objectives", notifyConnect: "notify_connect", meetCheckin: "meet_checkin" }[k] as "approve_objectives" | "notify_connect" | "meet_checkin";
+      update(s => { const t = s.parent?.teens.find(x => x.linkId === linkId); if (t) t[k] = v; });
+      backend.updateGuardianSettings(linkId, { [col]: v }).catch(e => { fail(e); loadParent().catch(() => {}); });
+    },
+    setTeenPaused(teenId, paused) {
+      update(s => { const t = s.parent?.teens.find(x => x.id === teenId); if (t) t.paused = paused; });
+      backend.guardianSetPaused(teenId, paused).catch(e => { fail(e); loadParent().catch(() => {}); });
+    },
   };
 
   return useMemo(() => ({ state, actions }), [state]); // eslint-disable-line react-hooks/exhaustive-deps

@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
 import { contactLockedKind, friendlyError, isLimitReached } from "@/backend/errors";
 import type { MyMatchRow, MyRequestRow, ProfileRow } from "@/backend/types";
-import { chatFromRows, guardianFromRow, hueFor, matchFromRow, requestFromRow, userFromProfile } from "@/store/liveMapping";
+import { chatFromRows, guardianFromRow, hueFor, inviteFromRow, matchFromRow, requestFromRow, teenFromRows, userFromProfile } from "@/store/liveMapping";
 import { normalisePhone, phoneHash, phoneHashes } from "./phoneHash";
 
 describe("hide me from my contacts: phone fingerprints", () => {
@@ -90,6 +90,26 @@ describe("database rows to screen state", () => {
     const c = chatFromRows([{ id: "m1", match_request_id: "r1", sender_id: "u1", body: "Hi", created_at: "" }, { id: "m2", match_request_id: "r1", sender_id: "c1", body: "Hey", created_at: "" }], "u1", "Jordan", true);
     expect(c.msgs.map(m => m.from)).toEqual(["sys", "me", "them", "sys"]);
     expect(c.connected).toBe(true);
+  });
+  it("maps a parent invite", () => {
+    expect(inviteFromRow({ invite_id: "i1", teen_first_name: "Tess", teen_age: 17, relationship: "mum", created_at: "" }))
+      .toEqual({ id: "i1", teenName: "Tess", teenAge: 17, rel: "Mum" });
+  });
+  it("builds a teen for the parent screen, never anything about chats", () => {
+    const link = { id: "g1", teen_id: "t1", guardian_id: "p1", relationship: "dad" as const, invite_phone: "+61491570108", status: "approved" as const,
+      approve_objectives: true, notify_connect: false, meet_checkin: true, created_at: "", approved_at: "" };
+    const profile = { id: "t1", first_name: "Tess", date_of_birth: "2009-01-15", photo_url: "t1/a.jpg", can_be_put_forward: false, verified_at: "2026-10-28" };
+    const plan = { id: "o1", owner_id: "t1", type: "sport", text: "A fifth player for Saturday football", when_text: "Saturdays", where_text: null,
+      group_size: 4, status: "pending_guardian" as const, month: "", used_credit: false, decided_by: null, decided_at: null, created_at: "" };
+    const t = teenFromRows(link, profile, [plan, { ...plan, id: "o2", status: "active" as const }, { ...plan, id: "o3", owner_id: "other" }],
+      [{ kind: "objective", title: "Waiting for your OK", detail: "A fifth player", happened_at: "2026-10-28T06:00:00Z" }],
+      [{ id: "n1", guardian_id: "p1", teen_id: "t1", kind: "meetup", payload: { with_first_name: "Sam", place: "Toowong Sports Centre", meet_at: "2026-10-29T08:00:00Z" }, created_at: "", read_at: null },
+       { id: "n2", guardian_id: "p1", teen_id: "t1", kind: "connected", payload: {}, created_at: "", read_at: null }]);
+    expect(t).toMatchObject({ linkId: "g1", id: "t1", name: "Tess", paused: true, verified: true, notifyConnect: false, photoPath: "t1/a.jpg" });
+    expect(t.age).toBeGreaterThanOrEqual(17);
+    expect(t.pending.map(p => p.id)).toEqual(["o1"]);
+    expect(t.meetups).toEqual([{ with: "Sam", place: "Toowong Sports Centre", at: "2026-10-29T08:00:00Z" }]);
+    expect(JSON.stringify(t)).not.toMatch(/message|chat/i);
   });
   it("gives the same colour for the same id", () => {
     expect(hueFor("abc")).toBe(hueFor("abc"));

@@ -4,7 +4,7 @@ import { GROUPS } from "@/lib/data";
 import { personById, useApp } from "@/store/AppStore";
 import { useTheme } from "@/theme";
 
-// What a parent sees in the parent app. Never includes chats.
+// Teen side: a preview of what their parent sees on the parent screen (the real one is parent-home.tsx). Never includes chats.
 export default function ParentApp() {
   const t = useTheme();
   const { state, actions } = useApp();
@@ -17,7 +17,7 @@ export default function ParentApp() {
   state.requests.filter(r => r.status === "accepted").forEach(r => items.push([`Said yes to ${r.name}'s plan`, r.text]));
 
   return (
-    <Screen title="Parent app" right={<Pill kind="wait" label={g.name} />}>
+    <Screen title="What your parent sees" right={<Pill kind="wait" label={g.name} />}>
       <Row gap={12}>
         <Avatar name={u.name} hue={210} />
         <View style={{ flex: 1 }}><T variant="bold">{u.name}, {u.age ?? 17}</T><T variant="small">ID verified · {u.suburb}{u.paused ? " · Paused" : ""}</T></View>

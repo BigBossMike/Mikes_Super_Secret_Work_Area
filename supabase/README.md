@@ -10,6 +10,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
+| `migrations/0006_parent_mode.sql` | Parent mode: invites to my number, decline, a parent pausing their teen, and the teen told when a parent declines. |
 | `migrations/0005_push.sql` | Push notifications: phone tokens, and triggers that send through Expo (pg_net). A parent's approval now starts the matching. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
@@ -42,7 +43,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 These are checked by the database itself, so they hold even if someone tampers with the app.
 
 - **16+ only**, and only the ID-check service can mark someone verified or change their date of birth.
-- **16 and 17 year olds need an approved parent** before they can post an objective or be matched. A parent claims the invite by signing in with the mobile number the teen entered.
+- **16 and 17 year olds need an approved parent** before they can post an objective or be matched. A parent sees the invite (`my_parent_invites`) by signing in with the mobile number the teen entered, then approves it (`claim_guardian_invite`) or declines it (`decline_parent_invite`). An approved parent can see their teen's profile, plans, connections and activity, decide plans, change their own alert settings and pause the teen (`guardian_set_paused`). Never chats.
 - **Minors are only ever matched with minors (16–17), and adults with adults.**
 - **Age ranges for adults are hard limits, and both people must fit.** Each adult can set the youngest and oldest age they're happy to meet. If they haven't, it's their own age minus 10 to plus 10. They can widen it to at most 20 years either side, and never under 18. Matching only happens when each person's age is inside the *other* person's range. So a 55-year-old (45–65) is never matched with a 19-year-old (18–29). Within the range, people closer in age still score a little higher.
 - **Keep my school out / keep my workplace out:** if either person has it switched on and they share a school or workplace (capital letters don't matter), they're never matched. Both are on by default.

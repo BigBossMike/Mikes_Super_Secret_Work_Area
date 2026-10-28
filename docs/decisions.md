@@ -25,6 +25,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 19 | **City, not suburb.** Nobody is asked for a suburb; everyone is in Brisbane for now and matching is city-wide with no distance in the score. The suburb list stays only so the connect record can name the nearest suburb to where two people met. Decided 28th October 2026. | Mike: a city is easier; the six-suburb list was a sample. |
 | 20 | **Push notifications are sent by the database**, through Expo's push service with pg_net, not by the app or a server function. Passes send nothing. Parents never hear about chats. A parent's approval starts the matching straight away. Decided 28th October 2026. | Every event already happens in the database, so nothing can be missed and no secret is needed. A teen's approved plan used to wait for the teen to open the app before anyone was asked. |
 | 21 | **One development build for Bluetooth and push.** Expo project `@mikegrady/intro`, bundle id `au.cavalry.intro` (iOS and Android), internal distribution. `npm start` stays in Expo Go mode. Decided 28th October 2026. | Expo Go can't receive push notifications or use Bluetooth. Mike has an Apple developer account. |
+| 22 | **Parent mode is in the same app.** A parent signs in with the number the teen entered, approves or says "This isn't me", then gets the parent screen: plans to OK, controls, meet-ups, activity, pause. No profile needed. The teen is told if a parent declines. Decided 28th October 2026. | One app to build, test and ship. Parents already sign in by phone to claim the invite. |
 
 ## State at the end of the first session
 
@@ -54,5 +55,6 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
 - City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
 - Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.
+- Parent mode built (migration 0006, decision 22). Live check passes. Open gap: the parent's age isn't checked, only their phone number.
 - iOS development build installed on Mike's iPhone (build 385efc5d). The phone registered for notifications and a test notification arrived; the tap opened Requests. The other iPhone on the Apple team (registered September 2025) no longer exists, so the Bluetooth test needs a second phone.
 - iPhone registered with Expo. The first iOS build stopped at Apple because the Cavalry Software developer membership had lapsed; Mike renewed it the same day. Packages brought to SDK 58 patch versions; microphone permission removed (Intro never records sound); standard encryption only (ITSAppUsesNonExemptEncryption false).
