@@ -3,7 +3,7 @@
 // liveMapping.ts; every database call goes through backend/supabaseBackend.ts.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AppState } from "react-native";
+import { AppState, Platform } from "react-native";
 import { supabase } from "@/backend/client";
 import { contactLockedKind, friendlyError } from "@/backend/errors";
 import { SupabaseBackend } from "@/backend/supabaseBackend";
@@ -13,6 +13,7 @@ import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
 import { newPhotoPath, PHOTO_URL_TTL_S } from "@/lib/photos";
 import { fromBase64 } from "@/lib/sha256";
+import { getPushToken, savedPushToken } from "@/notifications/push";
 import { CITY, defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
 import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
@@ -55,6 +56,7 @@ function useLiveStore(): Store {
   const otherUser = useRef<Record<string, string>>({});          // match request id -> the other person's user id
   const seenMessages = useRef<Set<string>>(new Set());
   const chatSubs = useRef<Record<string, () => void>>({});
+  const pushUser = useRef<string | null>(null);                  // who this phone's push token is registered to
 
   const update = useCallback((fn: (s: State) => void) => {
     setState(prev => { const next: State = JSON.parse(JSON.stringify(prev)); fn(next); return next; });
@@ -138,6 +140,13 @@ function useLiveStore(): Store {
     await Promise.all([objective ? loadMatches(objective.id) : Promise.resolve(), loadRequests()]);
     await loadConnections();
     await resolvePhotos(profile.photo_url ? [profile.photo_url] : []);
+    // Push notifications: once per sign-in, ask permission (first time only) and register this phone.
+    if (pushUser.current !== session.user.id) {
+      pushUser.current = session.user.id;
+      getPushToken()
+        .then(t => (t ? backend.registerPushToken(t, Platform.OS === "ios" ? "ios" : "android") : undefined))
+        .catch(() => { pushUser.current = null; });
+    }
     return { hasProfile: true };
   }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos]);
 
@@ -376,7 +385,15 @@ function useLiveStore(): Store {
     },
     buyOne() { toast("Payments aren't set up yet. Coming with the app store release."); },
     setPlan() { toast("Payments aren't set up yet. Coming with the app store release."); },
-    reset() { backend.signOut().catch(fail); },
+    reset() {
+      (async () => {
+        // This phone stops getting my notifications before I sign out.
+        const t = await savedPushToken();
+        if (t) await backend.unregisterPushToken(t).catch(() => {});
+        pushUser.current = null;
+        await backend.signOut();
+      })().catch(fail);
+    },
 
     sendSignInCode: phone => backend.sendSignInCode(phone),
     async checkSignInCode(phone, code) { await backend.checkSignInCode(phone, code); return loadAll(); },

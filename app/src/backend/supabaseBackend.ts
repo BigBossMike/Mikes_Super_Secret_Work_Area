@@ -266,6 +266,17 @@ export class SupabaseBackend {
     return out;
   }
 
+  // ---- Push notifications -----------------------------------------------------
+
+  /** This phone's push token now belongs to me (supabase/migrations/0005_push.sql). */
+  async registerPushToken(token: string, platform: "ios" | "android"): Promise<void> {
+    await this.rpc("register_push_token", { p_token: token, p_platform: platform });
+  }
+
+  async unregisterPushToken(token: string): Promise<void> {
+    await this.rpc("unregister_push_token", { p_token: token });
+  }
+
   // ---- Safety ----------------------------------------------------------------
 
   async report(reportedId: string, matchId: string | null, reason: ReportReason, details?: string): Promise<void> {

@@ -10,6 +10,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
+| `migrations/0005_push.sql` | Push notifications: phone tokens, and triggers that send through Expo (pg_net). A parent's approval now starts the matching. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
 | `functions/verify-stub/index.ts` | Pilot-only: marks a person verified from the date of birth they type. Off unless the secret `STUB_VERIFY_ENABLED` is `true`. |
@@ -74,9 +75,24 @@ The database does the same to each person's mobile in `private_contacts`. The fu
 
 Note: phone numbers are a small set, so a fingerprint could in principle be reversed by trying every number. That's why only the owner can ever read their own list.
 
-## Discreet notifications
+## Push notifications
 
-`profiles.discreet_notifications` is a stored setting, off by default. When it's on, whatever sends push notifications must use neutral text: **"Intro: you have an update"**. That means no names, no objective text and no "new match". The database only stores the setting; the push sender has to respect it.
+The database sends them itself. Each phone registers its Expo push token (`register_push_token`); triggers call `private.push`, which posts to Expo's push service with `pg_net` after the change is saved. A failed send never blocks the change.
+
+| Event | Who hears | Opens |
+|---|---|---|
+| Asked if keen on a plan | The person asked | Requests |
+| Someone said yes | The person who set the plan | Matches |
+| Chat message | The other person | The chat |
+| Parent approved or turned down a plan | The teen | Home |
+| Parent approved the account | The teen | Home |
+| Plan to OK, met someone, meet-up, report | The parent | Parent screen |
+
+Passes send nothing; people who pass stay anonymous. Parents never hear about chats.
+
+**Discreet notifications** (`profiles.discreet_notifications`, off by default): the notification has no title and says only **"Intro: you have an update"**. No names, no plan text.
+
+`app/scripts/live-push.mjs` checks every notification's wording inside a rolled-back transaction and sends one real push to a made-up token to prove the database reaches Expo.
 
 ## How the phone handshake works
 
@@ -107,7 +123,6 @@ Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Step
 
 - **ID verification:** connect a provider (Stripe Identity, Persona, ConnectID, etc.). Its webhook should set `verified_at` and the real date of birth using the service role.
 - **Payments:** connect RevenueCat (or Apple and Google directly). Its webhook updates `subscriptions` and `objective_credits`.
-- **Push notifications** for new requests, messages and parent alerts.
 - **Objective screening:** check objectives for mocking or targeting language before anyone is asked.
 - **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.
 - **Ganging-up detection** only knows about people who've met through Intro. It can't yet see friendships that exist outside the app. Same-school and same-device signals could be added.

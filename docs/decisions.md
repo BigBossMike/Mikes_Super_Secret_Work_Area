@@ -23,6 +23,8 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 17 | Live app: sign in by mobile number and SMS code (Supabase phone auth). During the pilot the server function verify-stub marks people verified from the date of birth they type; it only works when a secret is set and is replaced by the ID provider before launch. Order at sign-up is age, profile, then parent sign-off. Decided 27 October 2026. | Parents claim invites by phone number, so phone sign-in is needed anyway. The database needs the profile before a parent invite or a verification. |
 | 18 | **Build to launch.** The live app ran on Mike's phone on 28th October 2026 ("Worked. Looks good. I like it. Let's make it happen"). Build order in `CLAUDE.md`, Next steps. | Mike: make it happen. |
 | 19 | **City, not suburb.** Nobody is asked for a suburb; everyone is in Brisbane for now and matching is city-wide with no distance in the score. The suburb list stays only so the connect record can name the nearest suburb to where two people met. Decided 28th October 2026. | Mike: a city is easier; the six-suburb list was a sample. |
+| 20 | **Push notifications are sent by the database**, through Expo's push service with pg_net, not by the app or a server function. Passes send nothing. Parents never hear about chats. A parent's approval starts the matching straight away. Decided 28th October 2026. | Every event already happens in the database, so nothing can be missed and no secret is needed. A teen's approved plan used to wait for the teen to open the app before anyone was asked. |
+| 21 | **One development build for Bluetooth and push.** Expo project `@mikegrady/intro`, bundle id `au.cavalry.intro` (iOS and Android), internal distribution. `npm start` stays in Expo Go mode. Decided 28th October 2026. | Expo Go can't receive push notifications or use Bluetooth. Mike has an Apple developer account. |
 
 ## State at the end of the first session
 
@@ -50,3 +52,5 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Mike opened the live app on his iPhone: sign-in, age, profile, Home. Approved. Next: the launch build order in `CLAUDE.md`.
 - Profile photos built: private `photos` bucket, folder per person, read rule = card rule (migration 0003). The app resizes to 512 px JPEG on the phone (expo-image-picker, expo-image-manipulator) and shows photos through hour-long signed URLs. `profiles.photo_url` holds the storage path, not a link. Rules checked live with `app/scripts/live-photos.mjs`.
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
+- City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
+- Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.

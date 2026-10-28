@@ -13,6 +13,7 @@ The real Intro app, built with Expo (React Native) so one codebase runs on iPhon
 | `src/components/ui.tsx` | Shared building blocks: buttons, cards, chips, toggles, the avatar (initial or photo). |
 | `src/components/PhotoPicker.tsx` | Profile photo: camera or library, squared and shrunk on the phone to 512 px JPEG. |
 | `src/lib/` | The rules: age bands, matching, blocking contact details in chat, the connect codes and checks, photo paths. Covered by tests. |
+| `src/notifications/` | Push notifications: register the phone (`push.ts`) and open the right screen on tap (`PushRouting.tsx`). The database sends them. |
 | `src/handshake/` | The in-person connect: Bluetooth (`ble.ts`), location, the server calls (`api.ts`, with a stand-in for the demo build) and the `useHandshake` hook the Connect screens use. |
 | `src/store/` | What the app remembers. `context.ts` is the shape the screens see; `AppStore.tsx` fills it with sample people (demo); `LiveStore.tsx` fills it from Supabase; `liveMapping.ts` turns database rows into screen state (tested). |
 | `src/backend/` | Every Supabase call (`supabaseBackend.ts`), the connection (`client.ts`), row types and plain-English error messages. |
@@ -24,7 +25,7 @@ You need Node.js installed. Then, in this folder:
 
 ```bash
 npm install
-npm start        # then scan the QR code with the Expo Go app on your phone
+npm start        # Expo Go mode (--go); scan the QR code with the Expo Go app on your phone
 npm test         # runs the rules tests
 npm run typecheck
 ```
@@ -42,6 +43,7 @@ What changes in live mode:
 - "Confirm my age" uses the typed date of birth. The server's `verify-stub` function marks the person verified. Pilot only: the ID-check provider replaces it before launch.
 - Matches, requests, chats, connections and the plan allowance come from the database. New requests and chat messages arrive live; answers to your own plan are checked every 5 seconds.
 - Profile photos upload to a private Storage bucket; the database decides who may see each one (same rule as the person's card). `scripts/live-photos.mjs` checks those rules against the project.
+- Push notifications: the phone registers after sign-in and the database sends them (requests, answers, messages, parent decisions and alerts). Expo Go can't receive them; they need the development build below. `scripts/live-push.mjs` checks the wording and that the database reaches Expo.
 - Payments show "not set up yet" until in-app purchases are built.
 
 ## Connect in person: demo and live
@@ -58,13 +60,15 @@ The connect has two modes, picked by whether the Supabase settings are set (see 
 
 How it works: both phones make a code that changes every 5 seconds from a key the server hands out. Over Bluetooth each phone advertises its code inside a service UUID and listens for the other's. With QR, one phone shows its code and the other scans it. Each phone then tells the server what it heard and where it is. The server unlocks details only if both pressed together, each heard the other up close (Bluetooth) or one scanned the other (QR), and the phones are in the same place. The rules are in `src/lib/handshake.ts` and tested.
 
-To test Bluetooth, build the app onto two phones:
+To test Bluetooth and push notifications, put a development build on the phones. The project is linked to Expo (`@mikegrady/intro`, bundle id `au.cavalry.intro`) and `eas.json` has a `development` profile:
 
 ```bash
-npx expo run:android      # or: npx expo run:ios
+npx eas-cli device:create                                   # iPhone: register it (opens a link on the phone)
+npx eas-cli build --profile development --platform ios      # signs in to Apple, sets up push, builds in the cloud
+npx expo start --dev-client                                 # then open the installed Intro and connect
 ```
 
-Or use EAS Build with a development profile. The signal strength and distance limits (`HANDSHAKE` in `src/lib/handshake.ts`, and the same numbers at the top of the server function) will need tuning on real phones.
+Android: `npx eas-cli build --profile development --platform android` gives an install file. The signal strength and distance limits (`HANDSHAKE` in `src/lib/handshake.ts`, and the same numbers at the top of the server function) will need tuning on real phones.
 
 ## Still to do before launch
 
