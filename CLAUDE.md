@@ -26,7 +26,7 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 | `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. In-person connect (Bluetooth and QR) in `src/handshake/`. |
 | `supabase/` | Database schema, security, matching, the connect-handshake function, seed data and tests. |
 | `prototype/index.html` | Single-file clickable mock-up (also published as a Claude artifact). |
-| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?), `id-provider-comparison.md`, `privacy-policy.md` (draft, holds numbered) and `decisions.md` (why things are the way they are). |
+| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?), `id-provider-comparison.md`, `privacy-policy.md` and `terms-of-use.md` (drafts, holds numbered), `app-store-listing.md` (listing, age rating, privacy answers) and `decisions.md` (why things are the way they are). |
 
 ## Commands
 
@@ -51,7 +51,7 @@ Mike's side (accounts; each unblocks a step below):
 2. ID check provider: Stripe Identity for the pilot, or quotes from Yoti and Persona first. Comparison and vendor questions in `docs/id-provider-comparison.md`. Stripe needs a Stripe account (Australia) and its test keys.
 3. Apple Developer Program: Cavalry Software Pty Ltd, team CSUUTP3D67. Membership had lapsed and was renewed 28th October 2026. iPhone registered with Expo. Google Play Console (US$25 once) only when Android goes to the store; Android testers get an install file from EAS until then.
 4. RevenueCat account (free tier) for the $5 and $10 plans, after 3.
-5. Lawyer for the age rules, privacy policy and terms, before public launch only. Privacy policy drafted 28th October 2026 (`docs/privacy-policy.md`, 8 holds to fill). Terms of use still to draft.
+5. Lawyer for the age rules, privacy policy and terms, before public launch only. Privacy policy and terms of use drafted 28th October 2026 (`docs/privacy-policy.md` 8 holds, `docs/terms-of-use.md` 5 holds). Both need publishing at a public web address before the stores.
 
 Claude's side (code), in order:
 
@@ -63,5 +63,5 @@ Claude's side (code), in order:
 6. Bluetooth test on two phones with the development build; tune the signal and distance limits in `app/src/lib/handshake.ts` and the server function together. Mike's iPhone has the build. Second phone (Mike's are all Apple): register it with `npx eas-cli device:create` (link opened on that phone), then `npx eas-cli build:resign --platform ios --target-profile development` adds it to the existing build. An Android development build was also started 28th October 2026 (Mike wants Android covered). Test set-up: `node app/scripts/bluetooth-test-setup.mjs` makes test person Sam (0491 570 106, code 123456, age 48) set a plan that only Mike matches; Mike says yes on his phone, the second phone signs in as Sam, both open the chat and press Connect. Expo free plan: 30 cloud builds a month (15 iOS, 15 Android).
 7. In-app purchases through RevenueCat; its webhook updates `subscriptions` and `objective_credits`.
 8. Plan screening: word-list layer done 28th October 2026 (migration 0007, `app/src/lib/planScreen.ts`, mock-up, `scripts/live-plan-screen.mjs` passes). Blocks dating, putting people down and singling someone out; for 16-17 also alcohol, vapes, drugs and homes. `planScreen.fixtures.json` is the shared test list; change all three places together. Next layer: AI screening (needs an Anthropic API key).
-9. Store assets (icon, splash, listings, privacy labels), EAS production build, TestFlight pilot.
+9. Store assets, EAS production build, TestFlight pilot. Listing text, age rating, privacy answers and Apple review notes drafted (`docs/app-store-listing.md`, 8 holds). Still to make: icon, splash, screenshots, demo video.
 10. Launch per `docs/launch-plan.md`.
