@@ -2,6 +2,7 @@
 // Two providers fill this in: the demo (AppStore.tsx, sample people on the
 // phone) and the live one (LiveStore.tsx, Supabase). Screens never know which.
 import { createContext, useContext } from "react";
+import type { ContactsAccess } from "@/contacts/hideContacts";
 import type { Contact } from "@/handshake/api";
 import { ageFrom, agesCompatible } from "@/lib/age";
 import type { PickedPhoto } from "@/lib/photos";
@@ -9,6 +10,8 @@ import { SAMPLE_PEOPLE } from "@/lib/data";
 import type { Match, Objective, ObjectiveDraft, Person } from "@/lib/types";
 
 export type Plan = "free" | "unlimited";
+/** 7-day free trial, then $7.99 a month. pilot = payments not live yet, so everyone can set plans free. */
+export interface Billing { pilot: boolean; subscribed: boolean; inTrial: boolean; renewsAt: string | null }
 export type SearchPhase = "idle" | "guardian" | "finding" | "done" | "failed";
 
 export interface ChatMessage { from: "me" | "them" | "sys" | "blocked"; text: string }
@@ -55,7 +58,9 @@ export type ParentSettingKey = "approveObjectives" | "notifyConnect" | "meetChec
 export type PrivacyKey = "keepSchoolOut" | "keepWorkplaceOut" | "hideContacts" | "discreet";
 
 export interface State {
-  user: User; guardian: Guardian; plan: Plan; credits: number; used: number;
+  user: User; guardian: Guardian; plan: Plan; credits: number; used: number; billing: Billing;
+  /** Hide me from my contacts: whether the phone let Intro read them (live). */
+  contactsAccess?: ContactsAccess;
   draft: ObjectiveDraft; draftEdited: boolean; objective: Objective | null; matches: Match[]; searchPhase: SearchPhase;
   chats: Record<string, Chat>; requests: IncomingRequest[]; lastConnected: string | null;
   /** Live app: people keyed by match request id (the demo uses sample people instead). */
@@ -99,8 +104,14 @@ export interface Actions {
   setPrivacy(k: PrivacyKey, v: boolean): void;
   setAgeRange(min: number, max: number): void;
   setGuardianSetting(k: "approveObjectives" | "notifyConnect" | "meetCheckin", v: boolean): void;
-  buyOne(): void;
-  setPlan(p: Plan): void;
+  /** Live: the App Store or Google Play subscription (RevenueCat, not built yet). Demo: a pretend free trial. */
+  startTrial(): void;
+  /** Never paired or chatting again. The other person isn't told. */
+  block(id: string): void;
+  /** Meet-up check-in: tell my parent where and when. */
+  shareMeetup(id: string, place: string, meetAtIso: string, label: string): Promise<boolean>;
+  /** Live: deletes the account. Demo: starts again. */
+  deleteAccount(): Promise<boolean>;
   /** Demo: start over. Live: sign out. */
   reset(): void;
   // Live only. The demo returns at once.

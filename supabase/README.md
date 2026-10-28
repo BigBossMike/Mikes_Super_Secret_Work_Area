@@ -10,6 +10,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
+| `migrations/0008_pricing_and_account.sql` | 7-day trial then $7.99 a month (free during the pilot), and Delete my account (reports kept by phone fingerprint). |
 | `migrations/0007_plan_screening.sql` | Refuses plans that read as dating, put someone down or single someone out (and for 16-17: alcohol, vapes, drugs, homes). |
 | `migrations/0006_parent_mode.sql` | Parent mode: invites to my number, decline, a parent pausing their teen, and the teen told when a parent declines. |
 | `migrations/0005_push.sql` | Push notifications: phone tokens, and triggers that send through Expo (pg_net). A parent's approval now starts the matching. |
@@ -35,7 +36,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `blocks`, `reports` | Safety tools. | Your own. Reports alert the parents of any under-18 involved. |
 | `meetup_checkins` | "Meeting at Toowong Sports Centre, Thursday 6pm". | The two people. The teen's parent gets a notification. |
 | `guardian_notifications` | What shows in the parent app. | That parent. |
-| `subscriptions`, `objective_credits` | Plan (free or unlimited) and $5 extra-objective credits. | Your own. Only the server can change them, after Apple or Google confirms payment. |
+| `subscriptions` | Subscribed or not, in the free trial, and when it renews. (`objective_credits` is no longer used.) | Your own. Only the server can change them, after Apple or Google confirms payment. |
 | `safety_flags` | Possible ganging-up, for the Intro safety team. | Staff only. |
 | `suburbs`, `objective_types` | Reference lists. | Everyone signed in. |
 
@@ -55,10 +56,10 @@ These are checked by the database itself, so they hold even if someone tampers w
   - anyone this person has asked before or already met
   - anyone who's already had 3 requests this week
 - **Ganging-up protection:** if, in the last 14 days, someone has had requests from people who know each other, Intro skips them and raises a safety flag. "Know each other" means they've met through Intro.
-- **Parent approval:** under-18 objectives wait for the parent's OK if the parent has that setting on. If a parent says no, any $5 credit is refunded.
+- **Parent approval:** under-18 objectives wait for the parent's OK if the parent has that setting on. If a parent says no, the plan is closed and nothing is charged.
 - **Plan screening:** before anyone is asked, a plan (text, when and where) that reads as dating, puts someone down or singles someone out is refused with a plain reason (`objective_not_allowed`). For 16 and 17 year olds, so is alcohol, vapes, drugs or meeting at someone's home. Same lists as `app/src/lib/planScreen.ts` and the mock-up.
 - **Locked chat:** messages with phone numbers, emails, @handles, links or social app names are rejected until the two people have connected in person.
-- **Plans:** 1 free objective a month. After that, each one needs a $5 credit, unless the person is on the $10 unlimited plan.
+- **Pricing:** setting a plan needs a subscription ($7.99 a month after a 7-day free trial, through Apple or Google). Being asked, saying yes and meeting are always free. Until `private.settings.payments_live` is true, everyone can set plans free (the pilot).
 - **Contact details unlock only after an in-person connection**, which only the server can record.
 - **Profile photos** sit in a private bucket, in a folder named after the owner. A person can only upload into their own folder and only point their profile at their own folder. Reading follows the card rule: the person, people who agreed to talk to them, people who were asked about their plan, people they've met, and a teen's parent. The app shows photos through signed URLs that last an hour.
 

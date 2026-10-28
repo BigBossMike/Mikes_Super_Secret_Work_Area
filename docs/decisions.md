@@ -27,6 +27,8 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 21 | **One development build for Bluetooth and push.** Expo project `@mikegrady/intro`, bundle id `au.cavalry.intro` (iOS and Android), internal distribution. `npm start` stays in Expo Go mode. Decided 28th October 2026. | Expo Go can't receive push notifications or use Bluetooth. Mike has an Apple developer account. |
 | 22 | **Parent mode is in the same app.** A parent signs in with the number the teen entered, approves or says "This isn't me", then gets the parent screen: plans to OK, controls, meet-ups, activity, pause. No profile needed. The teen is told if a parent declines. Decided 28th October 2026. | One app to build, test and ship. Parents already sign in by phone to claim the invite. |
 | 23 | **Plans are screened before anyone is asked.** Refused for everyone: dating, putting people down, singling someone out ("the new kid", "from my school"). Refused for 16-17 only: alcohol, vapes, drugs, someone's home. Word lists first, in the database, app and mock-up, with one shared test list; AI screening is the next layer. Decided 28th October 2026. | Mike: it must never become a kiddie dating app, and plans must not be used to target anyone. Word lists are free and predictable; they miss subtle cases, hence the AI layer. |
+| 24 | **Pricing: 7-day free trial, then $7.99 a month** for as many plans as you like (replaces decision 2). Being asked, saying yes and meeting stay free. Free for everyone until payments go live. Decided 28th October 2026. | Mike: people won't pay for one plan a month. Keeping the asked side free keeps the pool of people large. |
+| 25 | **Delete my account in the app.** Removes the sign-in and everything hanging off it. Reports made by or about the person are kept for the safety team by phone fingerprint, not profile. Decided 28th October 2026. | Apple requires in-app deletion. Deleting must not erase a safety record. |
 
 ## State at the end of the first session
 
@@ -56,6 +58,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
 - City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
 - Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.
+- Pricing changed (decision 24, migration 0008). Delete my account, hide me from my contacts (reads the phone's contacts, uploads fingerprints daily), Block in the chat, and the meet-up check-in for 16-17 built. `scripts/live-account.mjs` passes; deletion also checked through the web build.
 - Terms of use (`docs/terms-of-use.md`) and the store listing with privacy answers (`docs/app-store-listing.md`) drafted. Draft icon and splash from the brand font and colours (`docs/brand/make-icons.js` regenerates them). Android development build done (build 1271aa09).
 - Plan screening, word-list layer (migration 0007, decision 23). Database, app and mock-up agree on all 26 test phrases.
 - Parent mode built (migration 0006, decision 22). Live check passes. Open gap: the parent's age isn't checked, only their phone number.

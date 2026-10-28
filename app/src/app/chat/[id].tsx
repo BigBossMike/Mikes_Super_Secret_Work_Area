@@ -2,7 +2,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { type ComponentRef, useRef, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Avatar, Btn, Row, Screen, T } from "@/components/ui";
+import { Avatar, Btn, Notice, Row, Screen, T } from "@/components/ui";
 import { personById, useApp } from "@/store/AppStore";
 import { fonts, useTheme } from "@/theme";
 
@@ -11,10 +11,14 @@ export default function ChatScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { state, actions } = useApp();
   const [text, setText] = useState("");
+  const [confirmBlock, setConfirmBlock] = useState(false);
   const scroller = useRef<ComponentRef<typeof ScrollView>>(null);
   const p = personById(state, id);
   const c = state.chats[id];
   if (!p || !c) return <Screen title="Chat"><T muted>This chat isn't available.</T></Screen>;
+
+  // Meet-up check-in: a 16 or 17 year old whose parent asked to know where and when.
+  const checkin = !c.connected && actions.isMinor() && state.guardian.meetCheckin;
 
   const send = () => {
     const msg = text.trim();
@@ -26,8 +30,15 @@ export default function ChatScreen() {
     <Screen scroll={false}
       title={<Row gap={10}><Avatar name={p.name} uri={p.photo} hue={p.hue} size={34} /><View><T variant="title">{p.name}</T>
         <Row gap={4}><Ionicons name={c.connected ? "checkmark" : "lock-closed"} size={11} color={t.muted} /><T variant="small">{c.connected ? "Connected" : "Details locked"}</T></Row></View></Row>}
-      right={<Btn small variant="ghost" label="Report" onPress={() => actions.report(id)} />}
-      footer={<>
+      right={<Row gap={6}><Btn small variant="ghost" label="Report" onPress={() => actions.report(id)} /><Btn small variant="ghost" label="Block" onPress={() => setConfirmBlock(true)} /></Row>}
+      footer={confirmBlock ? <>
+        <Notice kind="warn">Block {p.name}? You won't be paired or able to chat again. They aren't told.</Notice>
+        <Row gap={8}>
+          <Btn label="Block" onPress={() => { actions.block(id); router.replace("/home"); }} />
+          <Btn variant="ghost" label="Cancel" onPress={() => setConfirmBlock(false)} />
+        </Row>
+      </> : <>
+        {checkin && <Btn small variant="ghost" label="Share where and when you're meeting" onPress={() => router.push(`/meetup/${id}`)} />}
         {c.connected
           ? <Btn variant="ghost" label={`See ${p.name}'s details`} onPress={() => router.push(`/connected/${id}`)} />
           : <Btn variant="go" label="Met up? Connect in person" onPress={() => router.push(`/connect/${id}`)} />}

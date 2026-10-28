@@ -12,7 +12,7 @@ We follow the Australian Privacy Principles in the Privacy Act 1988 (Cth).
 
 ## 2. What Intro does with your information, in short
 
-- You tell Intro one plan a month. Intro asks up to 5 well-matched people if they are happy to be put forward.
+- You set a plan. Intro asks up to 5 well-matched people if they are happy to be put forward.
 - Nobody can browse or search Intro. People see you only after they agree to be put forward for your plan, or you agree for theirs.
 - Chat stays locked until you meet in person and connect your phones. Only then can you swap contact details.
 - Everyone is ID checked. We keep only that you are verified and your date of birth, never the ID.
@@ -40,7 +40,7 @@ We follow the Australian Privacy Principles in the Privacy Act 1988 (Cth).
 | Location at the moment you press Connect | Confirms you and the other person are in the same place. See section 8. | Your phone, with your permission |
 | Notification token | Sending notifications to your phone | Your phone |
 | Reports and blocks | Safety | You |
-| Plan and purchase records | Free plan, extra objectives, unlimited plan | Apple or Google, after you pay |
+| Subscription records | Free trial and monthly subscription | Apple or Google |
 | Device and usage information (app version, phone type, crash reports) | Keeping the app working | Your phone |
 
 We do not collect your address, your payment card details (Apple or Google handle payment), your full contact list, or your location at any other time.

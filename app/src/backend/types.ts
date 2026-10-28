@@ -73,6 +73,9 @@ export interface GuardianNotificationRow {
   read_at: string | null;
 }
 
+/** Plans screen (my_plan). */
+export interface MyPlanRow { subscribed: boolean; in_trial: boolean; renews_at: string | null; payments_live: boolean }
+
 export interface AllowanceRow {
   plan: "free" | "unlimited";
   used_this_month: number;

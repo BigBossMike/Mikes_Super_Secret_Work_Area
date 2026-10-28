@@ -13,6 +13,7 @@ import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
 import { newPhotoPath, PHOTO_URL_TTL_S } from "@/lib/photos";
 import { fromBase64 } from "@/lib/sha256";
+import { readContactHashes } from "@/contacts/hideContacts";
 import { getPushToken, savedPushToken } from "@/notifications/push";
 import { CITY, defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
@@ -28,7 +29,7 @@ function empty(): State {
     user: { name: "", dob: "", age: null, verified: false, suburb: CITY, interests: [], times: [], school: "", background: "",
       keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null, photoPath: null },
     guardian: guardianFromRow(null, ""),
-    plan: "free", credits: 0, used: 0, remaining: 1,
+    plan: "free", credits: 0, used: 0, remaining: 1, billing: { pilot: true, subscribed: false, inTrial: false, renewsAt: null },
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
     objective: null, objectiveId: null, matches: [], searchPhase: "idle", chats: {}, requests: [], lastConnected: null,
     people: {}, contacts: {}, session: "loading", hasProfile: false,
@@ -141,6 +142,23 @@ function useLiveStore(): Store {
       .catch(() => { pushUser.current = null; });
   }, [backend]);
 
+  /** Hide me from my contacts: upload fingerprints of the phone's contacts (at most daily), or clear them when it's switched off. */
+  const syncContacts = useCallback(async (on: boolean, force: boolean) => {
+    const uid = me.current;
+    if (!uid) return;
+    const key = `intro.contactsSync.${uid}`;
+    if (!on) { await backend.setHiddenContacts([]); await AsyncStorage.removeItem(key).catch(() => {}); return; }
+    if (!force) {
+      const last = Number((await AsyncStorage.getItem(key).catch(() => null)) ?? 0);
+      if (Date.now() - last < 24 * 60 * 60 * 1000) return;
+    }
+    const r = await readContactHashes();
+    update(s => { s.contactsAccess = r.status; });
+    if (r.status !== "ok") return;
+    await backend.setHiddenContacts(r.hashes);
+    await AsyncStorage.setItem(key, String(Date.now())).catch(() => {});
+  }, [backend, update]);
+
   /** Pulls everything for the signed-in person. Resolves with whether they have a profile yet, and whether they're a parent. */
   const loadAll = useCallback(async (): Promise<SignInResult> => {
     const session = await backend.session();
@@ -154,8 +172,8 @@ function useLiveStore(): Store {
       if (isParent) registerPush(session.user.id);
       return { hasProfile: false, isParent };
     }
-    const [background, link, allowance, objective, guardianName] = await Promise.all([
-      backend.myBackground(), backend.myGuardianLink(), backend.allowance(), backend.currentObjective(),
+    const [myPlan, background, link, allowance, objective, guardianName] = await Promise.all([
+      backend.myPlan(), backend.myBackground(), backend.myGuardianLink(), backend.allowance(), backend.currentObjective(),
       AsyncStorage.getItem(`intro.guardianName.${session.user.id}`).catch(() => null),
     ]);
     guardianLinkId.current = link?.id ?? null;
@@ -164,6 +182,7 @@ function useLiveStore(): Store {
       s.user = { ...userFromProfile(profile, background), photo: photoUrl(profile.photo_url) };
       s.guardian = guardianFromRow(link, guardianName ?? "");
       s.plan = allowance.plan; s.used = allowance.used_this_month; s.credits = allowance.extra_credits; s.remaining = allowance.remaining;
+      s.billing = { pilot: !myPlan.payments_live, subscribed: myPlan.subscribed, inTrial: myPlan.in_trial, renewsAt: myPlan.renews_at };
       s.objective = objective ? objectiveFromRow(objective, MONTH_NAME) : null;
       s.objectiveId = objective?.id ?? null;
       if (!objective) s.matches = [];
@@ -175,8 +194,9 @@ function useLiveStore(): Store {
     await resolvePhotos(profile.photo_url ? [profile.photo_url] : []);
     const isParent = await loadParent().catch(() => false);   // adults can be parents too
     registerPush(session.user.id);
+    syncContacts(profile.hide_contacts, false).catch(() => {});
     return { hasProfile: true, isParent };
-  }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos, loadParent, registerPush]);
+  }, [backend, update, loadMatches, loadRequests, loadConnections, resolvePhotos, loadParent, registerPush, syncContacts]);
 
   useEffect(() => {
     loadAll().catch(fail);
@@ -407,6 +427,7 @@ function useLiveStore(): Store {
       update(s => { s.user[k] = v; });
       const col = { keepSchoolOut: "keep_school_out", keepWorkplaceOut: "keep_workplace_out", hideContacts: "hide_contacts", discreet: "discreet_notifications" }[k] as keyof ProfileFields;
       backend.updateProfile({ [col]: v }).catch(fail);
+      if (k === "hideContacts") syncContacts(v, true).catch(fail);
     },
     setAgeRange(min, max) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); backend.updateProfile({ match_age_min: min, match_age_max: max }).catch(fail); },
     setGuardianSetting(k, v) {
@@ -416,8 +437,43 @@ function useLiveStore(): Store {
       backend.updateGuardianSettings(link, { [col]: v }).then(() => update(s => { s.guardian[k] = v; }))
         .catch(() => toast(`Only ${ref.current.guardian.name} can change this, from their parent screen in Intro.`));
     },
-    buyOne() { toast("Payments aren't set up yet. Coming with the app store release."); },
-    setPlan() { toast("Payments aren't set up yet. Coming with the app store release."); },
+    startTrial() {
+      toast(ref.current.billing.pilot ? "Free during the pilot. Nothing to pay." : "Payments aren't set up yet. Coming with the App Store release.");
+    },
+    block(id) {
+      const other = otherUser.current[id];
+      if (!other) return;
+      backend.block(other).then(() => {
+        chatSubs.current[id]?.();
+        delete chatSubs.current[id];
+        update(s => { delete s.chats[id]; s.matches = s.matches.filter(m => m.id !== id); s.requests = s.requests.filter(r => r.id !== id); });
+        toast("Blocked. You won't be paired or chat again.");
+      }).catch(fail);
+    },
+    async shareMeetup(id, place, meetAtIso, label) {
+      try {
+        await backend.shareMeetup(id, place, meetAtIso);
+        const parent = ref.current.guardian.name || "Your parent";
+        update(s => { s.chats[id]?.msgs.push({ from: "sys", text: `You shared: ${place}, ${label}. ${parent} has been told.` }); });
+        toast(`Shared with ${parent}.`);
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
+    async deleteAccount() {
+      try {
+        const photo = ref.current.user.photoPath;
+        if (photo) await backend.removePhoto(photo).catch(() => {});
+        const t = await savedPushToken();
+        if (t) await backend.unregisterPushToken(t).catch(() => {});
+        await backend.deleteMyAccount();
+        me.current = null;
+        pushUser.current = null;
+        setState({ ...empty(), session: "out" });
+        await backend.signOut().catch(() => {});
+        toast("Your account is deleted.");
+        return true;
+      } catch (e) { fail(e); return false; }
+    },
     reset() {
       // Signed out on screen straight away, so nothing redirects back to Home or the parent screen.
       me.current = null;

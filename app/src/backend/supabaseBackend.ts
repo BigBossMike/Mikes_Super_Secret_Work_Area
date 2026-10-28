@@ -5,7 +5,7 @@ import { normalisePhone } from "@/lib/phoneHash";
 import { PHOTO_BUCKET, PHOTO_URL_TTL_S } from "@/lib/photos";
 import type {
   AllowanceRow, ConnectionRow, ContactRow, GuardianActivityRow, GuardianNotificationRow, GuardianRow, MessageRow, MyMatchRow, MyRequestRow,
-  ObjectiveRow, ParentInviteRow, ProfileCardRow, ProfileFields, ProfileRow, ReportReason, TeenProfileRow,
+  MyPlanRow, ObjectiveRow, ParentInviteRow, ProfileCardRow, ProfileFields, ProfileRow, ReportReason, TeenProfileRow,
 } from "./types";
 
 export interface ObjectiveDraftRow { type: string; text: string; when_text: string | null; where_text: string | null; group_size: number }
@@ -190,6 +190,26 @@ export class SupabaseBackend {
 
   async guardianSetPaused(teenId: string, paused: boolean): Promise<void> {
     await this.rpc("guardian_set_paused", { p_teen: teenId, p_paused: paused });
+  }
+
+  // ---- Plan, meet-ups, account (supabase/migrations/0008_pricing_and_account.sql) ----
+
+  /** Subscribed or in the free trial, when it renews, and whether payments are live yet (false = the pilot, free for everyone). */
+  async myPlan(): Promise<MyPlanRow> {
+    const rows = await this.rpc<MyPlanRow[] | null>("my_plan");
+    return rows?.[0] ?? { subscribed: false, in_trial: false, renews_at: null, payments_live: false };
+  }
+
+  /** Meet-up check-in: the place and time go to my parent (meetups_after_insert). */
+  async shareMeetup(matchRequestId: string, place: string, meetAtIso: string): Promise<void> {
+    const id = await this.userId();
+    if (!id) throw new Error("Sign in first.");
+    must(await this.db.from("meetup_checkins").insert({ match_request_id: matchRequestId, user_id: id, place, meet_at: meetAtIso }));
+  }
+
+  /** Deletes me and everything that hangs off my sign-in. Remove the photo from Storage first. */
+  async deleteMyAccount(): Promise<void> {
+    await this.rpc("delete_my_account");
   }
 
   // ---- Objectives and matches ------------------------------------------------

@@ -25,7 +25,8 @@ export function friendlyError(e: unknown): string {
   const d = asDb(e);
   const kind = contactLockedKind(e);
   if (kind) return `Not sent: it looks like ${kind}. ${d.hint ?? "Contact details unlock once you meet and tap phones."}`;
-  if (isLimitReached(e)) return d.hint ?? "You've used this month's free objective. Buy one more, or go unlimited.";
+  if (d.message?.includes("subscription_needed")) return d.hint ?? "Start your 7-day free trial to set a plan.";
+  if (isLimitReached(e)) return d.hint ?? "Start your 7-day free trial to set a plan.";
   const refused = planRefusedKind(e);
   if (refused) return d.hint ?? PLAN_ISSUE_MESSAGE[refused as PlanIssue] ?? "This plan can't go out as written. Change the wording and try again.";
   const m = d.message ?? "";

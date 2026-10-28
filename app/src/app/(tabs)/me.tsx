@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { View } from "react-native";
-import { Avatar, Btn, Card, Pill, Row, Screen, T, Tag, ToggleRow } from "@/components/ui";
+import { Avatar, Btn, Card, Notice, Pill, Row, Screen, T, Tag, ToggleRow } from "@/components/ui";
 import { ageBand, bandLabel } from "@/lib/age";
 import { LIVE } from "@/backend/client";
 import { useApp } from "@/store/AppStore";
@@ -32,6 +32,7 @@ export default function Me() {
         <T variant="h3">Privacy</T>
         <T variant="small">Nobody can browse or search Intro. You're only ever shown to someone you've been paired with and said yes to.</T>
         <ToggleRow title="Hide me from my contacts" sub="People in your phone contacts are never paired with you, and never see you. Checked privately. Your contacts aren't stored." value={u.hideContacts} onChange={v => actions.setPrivacy("hideContacts", v)} />
+        {u.hideContacts && state.contactsAccess === "denied" && <Notice kind="warn">Intro can't read your contacts, so this can't work yet. Allow Contacts for Intro in your phone's Settings.</Notice>}
         {actions.isMinor()
           ? <ToggleRow title="Keep my school out" sub={`Never pair me with people from ${u.school || "my school"}.`} value={u.keepSchoolOut} onChange={v => actions.setPrivacy("keepSchoolOut", v)} />
           : <ToggleRow title="Keep my workplace out" sub={`Never pair me with people from ${u.workplace || "where I work"}.`} value={u.keepWorkplaceOut} onChange={v => actions.setPrivacy("keepWorkplaceOut", v)} />}
@@ -57,10 +58,13 @@ export default function Me() {
       )}
       <Card>
         <T variant="h3">Plan</T>
-        <T variant="small">{state.plan === "unlimited" ? "Unlimited objectives, $10 a month." : `Free: 1 objective a month${state.credits ? ` plus ${state.credits} extra` : ""}.`}</T>
-        <Btn small variant="ghost" label="Change plan" onPress={() => router.push("/plans")} />
+        <T variant="small">{state.billing.pilot ? "Free during the pilot." : state.billing.subscribed
+          ? (state.billing.inTrial ? `Free trial until ${new Date(state.billing.renewsAt ?? Date.now()).toLocaleDateString("en-AU", { day: "numeric", month: "long" })}, then $7.99 a month.` : "$7.99 a month. Set as many plans as you like.")
+          : "7-day free trial, then $7.99 a month. Being asked is always free."}</T>
+        <Btn small variant="ghost" label="See plans" onPress={() => router.push("/plans")} />
       </Card>
       <Btn small variant="ghost" label={LIVE ? "Sign out" : "Restart demo"} onPress={() => { actions.reset(); router.replace("/"); }} />
+      {LIVE && <Btn small variant="ghost" label="Delete my account" onPress={() => router.push("/delete-account")} />}
     </Screen>
   );
 }

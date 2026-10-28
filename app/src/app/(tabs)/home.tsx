@@ -9,18 +9,17 @@ export default function Home() {
   const o = state.objective;
 
   const start = () => router.push(actions.canStart() ? "/objective" : "/plans?limit=1");
-  const left = actions.objectivesLeft();
   const count = (k: string) => state.matches.filter(m => (state.chats[m.id]?.connected ? "agreed" : m.status) === k).length;
 
   return (
-    <Screen inTabs back={false} title={<Logo />} right={<Pill kind={state.plan === "free" ? "wait" : "yes"} label={state.plan === "unlimited" ? "Unlimited" : "Free plan"} />}>
+    <Screen inTabs back={false} title={<Logo />} right={<Pill kind={state.plan === "unlimited" ? "yes" : "wait"} label={state.billing.pilot ? "Free pilot" : state.billing.subscribed ? (state.billing.inTrial ? "Free trial" : "Subscribed") : "Not subscribed"} />}>
       <T variant="big" style={{ fontSize: 22 }}>Hi {state.user.name}.</T>
       {!o ? (
         <Card variant="hero">
           <T variant="eyebrow" color={t.go}>{MONTH_NAME} objective</T>
           <T variant="big" color={t.heroFg}>What would you like to do this month?</T>
           <T variant="small" color={t.heroMuted}>Tell us the plan. We'll find up to 5 people nearby who are keen to join in.</T>
-          <T variant="small" color={t.heroMuted}>{actions.canStart() ? (left === Infinity ? "Unlimited objectives." : `You have ${left} objective${left > 1 ? "s" : ""} left.`) : "You've used this month's objective."}</T>
+          <T variant="small" color={t.heroMuted}>{actions.canStart() ? "Set as many plans as you like." : "Start your 7-day free trial to set a plan."}</T>
           <Btn variant="go" label="Set my objective" onPress={start} />
         </Card>
       ) : o.done ? (

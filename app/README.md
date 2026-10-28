@@ -78,6 +78,6 @@ Android: `npx eas-cli build --profile development --platform android` gives an i
 2. ID verification provider (for example Stripe Identity or ConnectID).
 3. Test the Bluetooth connect on two phones with a development build, and tune the limits.
 4. Parent app: either a separate app or a parent mode in this one.
-5. In-app purchases (RevenueCat) for the $5 and $10 plans.
+5. In-app purchases (RevenueCat): $7.99 a month after a 7-day free trial. Free for everyone until payments go live.
 6. Push notifications for requests, approvals and messages.
 7. App Store and Google Play accounts, icons, store listings and privacy labels.

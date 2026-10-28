@@ -13,7 +13,7 @@ Two groups that never mix: 16 to 17, and 18+. Adults are only ever paired inside
 - **Private by design.** Using Intro must never be something people can see or talk about. Nobody can browse or search it. You're only shown to someone you've been paired with and said yes to. Phone contacts, your school or workplace can be kept out. Notifications can be discreet. This is a big difference from dating apps, where anyone could see who was on them.
 - **Confident and everyday.** Intro is a normal, smart way to get a plan going, like booking a court or a table. All messaging leads with the plan and the people, never with a problem.
 - **Real life, not a feed.** No followers, likes, feed or public profiles. Nobody can see how many matches or connections anyone has.
-- **Easy.** One plan a month, up to 5 people, the plan is clear before anyone agrees, and it's normal to bring a friend along to the first meet-up.
+- **Easy.** One plan, up to 5 people, the plan is clear before anyone agrees, and it's normal to bring a friend along to the first meet-up.
 
 ## Three audiences, three messages
 

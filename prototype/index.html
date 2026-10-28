@@ -305,7 +305,7 @@ function fresh() {
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, verifying: false, error: "", suburb: CITY,
             interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", school: "", noSchool: true, paused: false,
             workplace: "", noWork: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
-    plan: "free", credits: 0, used: 0,
+    plan: "unlimited", credits: 0, used: 0, trialUntil: new Date(Date.now() + 7 * 864e5),
     objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
     matches: [], chatWith: null, chats: {}, connectStage: 0, qrMode: "show", qrBusy: false, lastConnected: null,
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: CITY, hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Free Saturdays"], status: "pending" },
@@ -322,7 +322,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;"
 const band = age => age < 18 ? "16–17" : "18+";
 const av = (p, cls = "") => `<div class="av ${cls}" style="background:hsl(${p.hue} 55% 42%)">${esc(p.name[0])}</div>`;
 const person = id => PEOPLE.find(p => p.id === id) || S.requests.find(r => r.id === id);
-const allowance = () => S.plan === "unlimited" ? Infinity : 1 + S.credits;
+// Pricing: 7-day free trial, then $7.99 a month for as many plans as you like. Being asked is always free.
+const allowance = () => S.plan === "unlimited" ? Infinity : 0;
 const canStart = () => S.used < allowance();
 const myRequests = () => {
   const me = S.user.age ?? ageFrom(S.user.dob) ?? 17, mine = ageRange(me, S.user.ageMin, S.user.ageMax);
@@ -528,7 +529,7 @@ const SCREENS = {
       card = `<div class="card objective"><span class="eyebrow">${MONTH} objective</span>
         <p class="big">What would you like to do this month?</p>
         <p class="muted small">Tell us the plan. We'll find up to 5 people nearby who are keen to join in.</p>
-        <p class="muted small">${canStart() ? `You have ${allowance() === Infinity ? "unlimited objectives" : `${allowance() - S.used} objective${allowance() - S.used > 1 ? "s" : ""}`} left.` : "You've used this month's objective."}</p>
+        <p class="muted small">${canStart() ? "Set as many plans as you like." : "Start your 7-day free trial to set a plan."}</p>
         <button class="btn go" data-act="startObjective">Set my objective</button></div>`;
     } else if (o.done) {
       const p = person(S.lastConnected);
@@ -546,7 +547,7 @@ const SCREENS = {
         <button class="btn go" data-act="go" data-arg="matches">See people</button></div>`;
     }
     return `<div class="scr">
-    <div class="top"><div class="grow logo">intro<i>.</i></div><span class="pill ${S.plan === "free" ? "wait" : "yes"}">${S.plan === "unlimited" ? "Unlimited" : "Free plan"}</span></div>
+    <div class="top"><div class="grow logo">intro<i>.</i></div><span class="pill ${S.plan === "free" ? "wait" : "yes"}">${S.plan === "unlimited" ? "Free trial" : "Not subscribed"}</span></div>
     <div class="body">
       <p class="big" style="font-size:22px">Hi ${esc(S.user.name)}.</p>
       ${card}
@@ -710,8 +711,8 @@ const SCREENS = {
         <ul class="plist small">${[["approveObjectives", "Approve each objective first"], ["notifyConnect", "Get a message when you connect with someone"], ["meetCheckin", "Ask where and when you're meeting"]].map(([k, l]) => `<li class="${S.parent[k] ? "" : "off"}">${l}${S.parent[k] ? "" : " (off)"}</li>`).join("")}</ul>
         <p class="small muted">Your chats stay private. ${esc(S.parent.name)} can't read them.</p>
         <button class="btn ghost sm" data-act="go" data-arg="parentView">See what ${esc(S.parent.name)} sees</button></div>` : ""}
-      <div class="card"><h3>Plan</h3><p class="small muted">${S.plan === "unlimited" ? "Unlimited objectives, $10 a month." : `Free: 1 objective a month${S.credits ? ` plus ${S.credits} extra` : ""}.`}</p>
-        <button class="btn ghost sm" data-act="go" data-arg="plans">Change plan</button></div>
+      <div class="card"><h3>Plan</h3><p class="small muted">${S.plan === "unlimited" ? `Free trial until ${S.trialUntil.toLocaleDateString("en-AU", { day: "numeric", month: "long" })}, then $7.99 a month.` : "7-day free trial, then $7.99 a month. Being asked is always free."}</p>
+        <button class="btn ghost sm" data-act="go" data-arg="plans">See plans</button></div>
     </div>${tabs()}</div>`;
   },
 
@@ -761,10 +762,9 @@ const SCREENS = {
     return `<div class="scr">${top("Plans", "home")}
     <div class="body">
       ${S.planNotice ? `<div class="notice warn">${esc(S.planNotice)}</div>` : ""}
-      ${p("free", "Free", "$0", "", "1 objective every month. Being put forward is always free.", "")}
-      ${p("extra", "Extra objective", "$5", "each", `One more objective this month, on top of your free one.${S.credits ? ` You have ${S.credits} extra.` : ""}`, `<button class="btn primary sm" data-act="buyOne">Buy one objective</button>`)}
-      ${p("unlimited", "Unlimited", "$10", "a month", "As many objectives as you like. Cancel any time.", S.plan === "unlimited" ? `<button class="btn ghost sm" data-act="setPlan" data-arg="free">Switch back to Free</button>` : `<button class="btn go sm" data-act="setPlan" data-arg="unlimited">Go unlimited</button>`)}
-      <p class="small muted">Prices in AUD. Demo only: nothing is charged.</p>
+      ${p("unlimited", "Intro", "$7.99", "a month", "7-day free trial. Set as many plans as you like. Cancel any time.", S.plan === "unlimited" ? `<p class="small muted">Free trial until ${S.trialUntil.toLocaleDateString("en-AU", { day: "numeric", month: "long" })}.</p><button class="btn ghost sm" data-act="setPlan" data-arg="free">Cancel (demo)</button>` : `<button class="btn go sm" data-act="setPlan" data-arg="unlimited">Start my free trial</button>`)}
+      ${p("asked", "Being asked", "Free", "", "Being asked to join someone else's plan, saying yes and meeting up are always free.", "")}
+      <p class="small muted">Prices in AUD, including GST. After the free trial the App Store or Google Play charges $7.99 a month unless you cancel. Demo only: nothing is charged.</p>
     </div></div>`;
   }
 };
@@ -843,7 +843,7 @@ const ACT = {
     go("home");
   },
   startObjective: () => {
-    if (!canStart()) { S.planNotice = `You've used your free objective for ${MONTH}. Buy one more, or go unlimited.`; return go("plans"); }
+    if (!canStart()) { S.planNotice = "Start your 7-day free trial to set a plan."; return go("plans"); }
     S.planNotice = "";
     if (!S.draftEdited) S.draft = draftFor(S.user.age ?? 17);
     go("newObjective");
@@ -905,8 +905,7 @@ const ACT = {
   reqYes: a => { const r = S.requests.find(x => x.id === a); r.status = "accepted"; render(); toast(`${r.name} can now message you.`); },
   reqNo: a => { S.requests.find(x => x.id === a).status = "declined"; render(); },
   pause: () => { S.user.paused = !S.user.paused; render(); },
-  buyOne: () => { S.credits++; S.planNotice = ""; toast("Added 1 objective (demo, no charge)."); render(); },
-  setPlan: a => { S.plan = a; S.planNotice = ""; toast(a === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); render(); }
+  setPlan: a => { S.plan = a; S.planNotice = ""; if (a === "unlimited") S.trialUntil = new Date(Date.now() + 7 * 864e5); toast(a === "unlimited" ? "Free trial started (demo, no charge)." : "Subscription cancelled (demo)."); render(); }
 };
 
 $app.addEventListener("click", e => {

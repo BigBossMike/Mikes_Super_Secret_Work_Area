@@ -5,8 +5,8 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 ## The product
 
 - **Tagline:** "Extending a digital hand in a modern world." It should feel like putting your name down at the golf club and getting paired up.
-- **How it works:** one plan a month ("objective"). Intro asks up to 5 well-matched people if they're happy to be put forward. Chat stays locked (no numbers, emails, socials or links) until both people meet and press the big green Connect button with their phones together.
-- **Pricing (AUD):** free gets 1 objective a month, $5 per extra objective, $10 a month unlimited.
+- **How it works:** set a plan ("objective"). Intro asks up to 5 well-matched people if they're happy to be put forward. Chat stays locked (no numbers, emails, socials or links) until both people meet and press the big green Connect button with their phones together.
+- **Pricing (AUD, decided 28th October 2026):** 7-day free trial, then $7.99 a month for as many plans as you like. Being asked to join someone else's plan is always free. Free for everyone during the pilot (payments not live).
 - **Launch:** Brisbane, led by parents (Mike's parent network). See `docs/launch-plan.md`.
 
 ## Rules that must never break
@@ -50,7 +50,7 @@ Mike's side (accounts; each unblocks a step below):
 1. Twilio account (twilio.com): an Australian sender, then Account SID, Auth Token and Messaging Service SID into Supabase → Authentication → Providers → Phone. Until then only the test numbers can sign in.
 2. ID check provider: Stripe Identity for the pilot, or quotes from Yoti and Persona first. Comparison and vendor questions in `docs/id-provider-comparison.md`. Stripe needs a Stripe account (Australia) and its test keys.
 3. Apple Developer Program: Cavalry Software Pty Ltd, team CSUUTP3D67. Membership had lapsed and was renewed 28th October 2026. iPhone registered with Expo. Google Play Console (US$25 once) only when Android goes to the store; Android testers get an install file from EAS until then.
-4. RevenueCat account (free tier) for the $5 and $10 plans, after 3.
+4. RevenueCat account (free tier) for the $7.99 monthly subscription with a 7-day free trial, after 3. Set up the subscription in App Store Connect and Google Play with a 7-day free trial introductory offer.
 5. Lawyer for the age rules, privacy policy and terms, before public launch only. Privacy policy and terms of use drafted 28th October 2026 (`docs/privacy-policy.md` 8 holds, `docs/terms-of-use.md` 5 holds). Both need publishing at a public web address before the stores.
 
 Claude's side (code), in order:
@@ -61,7 +61,9 @@ Claude's side (code), in order:
 4. Parent mode: done 28th October 2026 (migration 0006, `app/src/app/parent-home.tsx`, `scripts/live-parent.mjs` passes). A parent signs in with the invited number, approves or declines, then sees plans to OK, controls, meet-ups and activity; never chats. Gap: nothing checks the parent is an adult (phone number only); add a parent ID check with the ID provider.
 5. ID provider wired in place of verify-stub, once Mike has chosen (its webhook sets `verified_at` and the date of birth with the service role).
 6. Bluetooth test on two phones with the development build; tune the signal and distance limits in `app/src/lib/handshake.ts` and the server function together. Mike's iPhone has the build. Second phone (Mike's are all Apple): register it with `npx eas-cli device:create` (link opened on that phone), then `npx eas-cli build:resign --platform ios --target-profile development` adds it to the existing build. An Android development build was also started 28th October 2026 (Mike wants Android covered). Test set-up: `node app/scripts/bluetooth-test-setup.mjs` makes test person Sam (0491 570 106, code 123456, age 48) set a plan that only Mike matches; Mike says yes on his phone, the second phone signs in as Sam, both open the chat and press Connect. Expo free plan: 30 cloud builds a month (15 iOS, 15 Android).
-7. In-app purchases through RevenueCat; its webhook updates `subscriptions` and `objective_credits`.
+7. In-app purchases through RevenueCat: one $7.99 monthly subscription with a 7-day free trial. Its webhook writes `subscriptions` (plan, current_period_end, in_trial); then set `private.settings.payments_live` to true to end the free pilot.
 8. Plan screening: word-list layer done 28th October 2026 (migration 0007, `app/src/lib/planScreen.ts`, mock-up, `scripts/live-plan-screen.mjs` passes). Blocks dating, putting people down and singling someone out; for 16-17 also alcohol, vapes, drugs and homes. `planScreen.fixtures.json` is the shared test list; change all three places together. Next layer: AI screening (needs an Anthropic API key).
 9. Store assets, EAS production build, TestFlight pilot. Listing text, age rating, privacy answers and Apple review notes drafted (`docs/app-store-listing.md`, 8 holds). Draft icon and splash in the app (navy "i." with the green full stop; wordmark splash, light and dark; `docs/brand/`), showing on phones from the next build. Still to make: screenshots, demo video.
 10. Launch per `docs/launch-plan.md`.
+
+Built 28th October 2026, not yet tried on a phone: Delete my account (Me), hide me from my contacts (needs the next build for the contacts permission), Block (chat), meet-up check-in (chat, for 16-17 when the parent has it on).

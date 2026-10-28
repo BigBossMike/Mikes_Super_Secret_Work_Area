@@ -14,7 +14,7 @@ By creating an account or using Intro you agree to these terms and to the Privac
 
 Intro helps people meet for a plan. The following is how it works:
 
-- You set one plan a month (an "objective"), for example a fifth player for football or someone for a midweek dinner.
+- You set a plan (an "objective"), for example a fifth player for football or someone for a midweek dinner.
 - Intro asks up to 5 well-matched people if they're happy to be put forward. You see who they are only if they say yes.
 - Chat stays locked to plain messages. Phone numbers, emails, socials and links unlock only when you meet in person and press Connect with your phones together.
 
@@ -76,13 +76,12 @@ Intro checks ages and keeps chat locked until you meet. It does not run criminal
 
 | Plan | What you get | Price (AUD, including GST) |
 |---|---|---|
-| Free | 1 objective a month | Free |
-| Extra objective | 1 more objective this month | $5 each |
-| Unlimited | Unlimited objectives | $10 a month |
+| Being asked | Being asked to join someone else's plan, saying yes and meeting up | Free |
+| Intro | Set as many plans as you like | 7-day free trial, then $7.99 a month |
 
 - Payments go through the Apple App Store or Google Play, under their terms. Intro never sees your card details.
-- Unlimited renews each month until you cancel it in your App Store or Google Play settings. Cancelling stops the next renewal; the current month runs to its end.
-- An extra objective is used when you post the plan. If a parent turns the plan down, the credit comes back.
+- The free trial is 7 days. Unless you cancel before it ends, the subscription starts and renews each month until you cancel it in your App Store or Google Play settings. Cancelling stops the next renewal; the current month runs to its end.
+- One free trial per person.
 - Refunds are handled by Apple or Google. Nothing in these terms limits your rights under the Australian Consumer Law.
 - Prices can change. We'll tell you in the app before a new price applies to you.
 
@@ -104,7 +103,7 @@ We can tell the police or the eSafety Commissioner if we believe someone is at r
 - You can delete your account at any time in the app or by contacting us.
 - What is deleted and what is kept is set out in the Privacy Policy (section 12).
 - People you've already connected with keep the contact details you shared with them.
-- Unused extra objectives are not refunded when you close your account, except where the law requires it.
+- Deleting your account doesn't cancel your subscription. Cancel it in your App Store or Google Play settings.
 
 ## 12. Our responsibility
 

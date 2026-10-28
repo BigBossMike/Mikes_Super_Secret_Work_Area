@@ -43,7 +43,8 @@ function initial(): State {
       times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false,
       workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null },
     guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
-    plan: "free", credits: 0, used: 0,
+    plan: "unlimited", credits: 0, used: 0,
+    billing: { pilot: false, subscribed: true, inTrial: true, renewsAt: new Date(Date.now() + 7 * 864e5).toISOString() },
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
     objective: null, matches: [], searchPhase: "idle", chats: {}, lastConnected: null,
     requests: [{ id: "sam", name: "Sam", age: 17, suburb: CITY, hue: 15, group: 2, text: "Someone to see a movie with on a Saturday",
@@ -72,7 +73,7 @@ function useDemoStore(): Store {
   }, []);
 
   const isMinor = () => minorAge(ref.current.user.age ?? ageFrom(ref.current.user.dob) ?? 17);
-  const allowance = () => (ref.current.plan === "unlimited" ? Infinity : 1 + ref.current.credits);
+  const allowance = () => (ref.current.plan === "unlimited" ? Infinity : 0);
   const personName = (s: State, id: string) => SAMPLE_PEOPLE.find(x => x.id === id)?.name ?? s.requests.find(x => x.id === id)?.name ?? "They";
 
   const actions: Actions = {
@@ -177,8 +178,21 @@ function useDemoStore(): Store {
     setPrivacy(k, v) { update(s => { s.user[k] = v; }); },
     setAgeRange(min, max) { update(s => { s.user.ageMin = min; s.user.ageMax = max; }); },
     setGuardianSetting(k, v) { update(s => { s.guardian[k] = v; }); },
-    buyOne() { update(s => { s.credits++; }); toast("Added 1 objective (demo, no charge)."); },
-    setPlan(p) { update(s => { s.plan = p; }); toast(p === "unlimited" ? "You're on Unlimited (demo, no charge)." : "Back on the Free plan."); },
+    startTrial() {
+      update(s => { s.plan = "unlimited"; s.billing = { pilot: false, subscribed: true, inTrial: true, renewsAt: new Date(Date.now() + 7 * 864e5).toISOString() }; });
+      toast("Free trial started (demo, no charge).");
+    },
+    block(id) {
+      update(s => { delete s.chats[id]; s.matches = s.matches.filter(m => m.id !== id); s.requests = s.requests.filter(r => r.id !== id); });
+      toast("Blocked. You won't be paired or chat again.");
+    },
+    async shareMeetup(id, place, _meetAtIso, label) {
+      const parent = ref.current.guardian.name;
+      update(s => { s.chats[id]?.msgs.push({ from: "sys", text: `You shared: ${place}, ${label}. ${parent} has been told.` }); });
+      toast(`Shared with ${parent}.`);
+      return true;
+    },
+    async deleteAccount() { setState(initial()); toast("Demo started again."); return true; },
     reset() { setState(initial()); },
     sendSignInCode: phone => Promise.resolve(phone),
     checkSignInCode: () => Promise.resolve({ hasProfile: true, isParent: false }),

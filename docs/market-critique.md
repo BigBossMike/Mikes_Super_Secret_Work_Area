@@ -106,3 +106,5 @@ Decision (27 October 2026): build and launch at 16+, no concierge pilot. The app
 - [Stripe Identity pricing](https://www.stripe.com/identity)
 - [Annature pricing (local provider)](https://toolradar.com/tools/annature/pricing)
 - [Mobicip on MeetMe](https://app.mobicip.com/blog/risks-meetme-app-what-parents-need-know-keep-kids-safe)
+
+Note – Pricing changed on 28th October 2026: a 7-day free trial, then $7.99 a month for as many plans as you like. Point 3 above refers to the old free-plus-$10 model.

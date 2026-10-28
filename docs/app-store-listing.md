@@ -9,10 +9,10 @@ Draft 28th October 2026. Written to match the app as built. Holds are numbered a
 | App name | 30 | Intro [Hold 1] |
 | Subtitle (Apple) | 30 | One plan. Real people. |
 | Short description (Google) | 80 | Set a plan, get paired with people who are keen, meet in person. |
-| Promotional text (Apple) | 170 | Extending a digital hand in a modern world. Set one plan a month and Intro asks up to five well-matched people in Brisbane if they're keen. |
+| Promotional text (Apple) | 170 | Extending a digital hand in a modern world. Set a plan and Intro asks up to five well-matched people in Brisbane if they're keen. |
 | Keywords (Apple) | 100 | plans,meet,people,activities,brisbane,sport,trivia,walking,dinner,club,team,group,local |
 | Category | | Social Networking (primary), Lifestyle (secondary) |
-| Price | | Free, with in-app purchases |
+| Price | | Free to download. Subscription: 7-day free trial, then A$7.99 a month |
 
 ## Description
 
@@ -22,7 +22,7 @@ Intro works like putting your name down at the club and getting paired up.
 
 How it works:
 
-- Set one plan for the month. Say who'll be there ("Me + 2 others").
+- Set a plan. Say who'll be there ("Me + 2 others").
 - Intro asks up to 5 well-matched people if they're happy to be put forward.
 - You see who they are only once they say yes. People who pass stay anonymous.
 - Chat to sort out the details. Numbers and socials unlock when you meet and tap phones.
@@ -39,11 +39,10 @@ For everyone 16 and over:
 - 16 and 17 year olds are only ever paired with other 16 and 17 year olds, with a parent's OK.
 - Adults are only ever paired with adults, inside the age range both people set.
 
-Plans:
+Price:
 
-- Free: 1 plan a month.
-- $5 for each extra plan.
-- $10 a month for unlimited plans.
+- 7-day free trial, then $7.99 a month to set as many plans as you like.
+- Being asked to join someone else's plan is always free.
 
 Now in Brisbane.
 
