@@ -56,7 +56,7 @@ Mike's side (accounts; each unblocks a step below):
 Claude's side (code), in order:
 
 1. Profile photos: done 28th October 2026 (migration 0003, `app/src/components/PhotoPicker.tsx`, `scripts/live-photos.mjs` passes). Works on Mike's iPhone.
-2. Push notifications: built 28th October 2026 (migration 0005, `app/src/notifications/`, `scripts/live-push.mjs` passes). The database sends through Expo with pg_net. Needs the development build to arrive on a phone (Expo Go can't receive them). Expo project `@mikegrady/intro`, bundle id `au.cavalry.intro`, `app/eas.json`. Next: Mike registers his iPhone and runs the iOS development build (Apple sign-in is his).
+2. Push notifications: built 28th October 2026 (migration 0005, `app/src/notifications/`, `scripts/live-push.mjs` passes). The database sends through Expo with pg_net. Works on Mike's iPhone in the development build (28th October 2026: test notification arrived, tap opened Requests). Expo Go can't receive them. Expo project `@mikegrady/intro`, bundle id `au.cavalry.intro`, `app/eas.json`. Run the phone with `npx expo start --dev-client` from `app/`.
 3. City, not suburb: done 28th October 2026 (migration 0004). Nobody is asked for a suburb; matching is Brisbane-wide with no distance scoring. More cities later.
 4. Parent mode in the same app: a parent signs in with the invited number and sees the parent screens, never chats.
 5. ID provider wired in place of verify-stub, once Mike has chosen (its webhook sets `verified_at` and the date of birth with the service role).
