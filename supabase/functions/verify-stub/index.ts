@@ -13,10 +13,16 @@
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
+// Browser builds (Expo web) send a preflight OPTIONS request first; phones don't.
+const CORS = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
+  new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
 Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "Use POST" }, 405);
   if (Deno.env.get("STUB_VERIFY_ENABLED") !== "true") return json({ error: "ID checks aren't set up on this server yet." }, 503);
 
