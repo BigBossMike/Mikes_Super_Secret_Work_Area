@@ -25,12 +25,14 @@ export function PhotoPicker({ name, uri, onPicked }: {
         toast(from === "camera" ? "Intro needs the camera for that. You can allow it in your phone's settings." : "Intro needs access to your photos for that. You can allow it in your phone's settings.");
         return;
       }
-      const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 1 };
+      // No native crop screen: on iPhone it saves a different crop from the one framed. We square the
+      // photo ourselves from the centre, which is where a selfie puts the face.
+      const options: ImagePicker.ImagePickerOptions = { mediaTypes: ["images"], allowsEditing: false, quality: 1 };
       const result = from === "camera"
         ? await ImagePicker.launchCameraAsync({ ...options, cameraType: ImagePicker.CameraType.front })
         : await ImagePicker.launchImageLibraryAsync(options);
       if (result.canceled || !result.assets[0]) return;
-      await onPicked(await shrink(result.assets[0].uri));
+      await onPicked(await shrink(result.assets[0]));
     } catch {
       toast("Couldn't use that photo. Try another one.");
     } finally {
@@ -60,10 +62,15 @@ export function PhotoPicker({ name, uri, onPicked }: {
   );
 }
 
-/** Resize to PHOTO_SIZE on the longest side and save as a JPEG with its base64. */
-async function shrink(uri: string): Promise<PickedPhoto> {
-  const context = ImageManipulator.manipulate(uri);
-  context.resize({ width: PHOTO_SIZE });
+/** Square the photo from its centre, shrink it to PHOTO_SIZE, and save as a JPEG with its base64. */
+async function shrink(asset: { uri: string; width?: number; height?: number }): Promise<PickedPhoto> {
+  const context = ImageManipulator.manipulate(asset.uri);
+  const w = asset.width ?? 0, h = asset.height ?? 0;
+  if (w > 0 && h > 0 && w !== h) {
+    const side = Math.min(w, h);
+    context.crop({ originX: Math.floor((w - side) / 2), originY: Math.floor((h - side) / 2), width: side, height: side });
+  }
+  context.resize({ width: PHOTO_SIZE, height: PHOTO_SIZE });
   const image = await context.renderAsync();
   const saved = await image.saveAsync({ base64: true, compress: PHOTO_QUALITY, format: SaveFormat.JPEG });
   if (!saved.base64) throw new Error("No image data");
