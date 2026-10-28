@@ -91,7 +91,7 @@ The location is kept with the connect record for [Hold 4] and then deleted. Only
 - Messages with phone numbers, emails, social handles or links are blocked until you have connected in person. The check runs on the server.
 - You can report or block anyone from a chat. Reports are reviewed by Intro's safety team, who can read the reported chat.
 - Intro checks for patterns of people targeting one person (for example several people who know each other being put forward to the same person) and may hold back a match and raise a flag for the safety team.
-- Intro may use automated checks on plan text before anyone is asked, to screen for mocking or targeting language.
+- Intro checks plan text automatically before anyone is asked. Plans that read as dating, put someone down or single someone out are refused. For 16 and 17 year olds, so are alcohol, vapes, drugs and meeting at someone's home.
 - Intro keeps a record of matches, answers and connections to run these checks.
 
 ## 10. Who we share with

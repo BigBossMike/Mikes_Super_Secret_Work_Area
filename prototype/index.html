@@ -351,6 +351,23 @@ const ageRange = (age, min, max) => {
   const lo = Math.max(floor, min ?? age - 10);
   return [lo, Math.max(lo, Math.min(ceil, max ?? age + 10))];
 };
+// Plan screening: same lists as app/src/lib/planScreen.ts and private.plan_issue in the database.
+const PLAN_RULES = [
+  ["dating", false, /\b(dating|date night|(go|going|looking for|find me) (on )?a date|hook ?ups?|sexy|sex|nudes?|flirt(ing|y)?|girlfriend|boyfriend)\b/i],
+  ["mocking", false, /\b(losers?|ugly|weirdos?|freaks?|retard(s|ed)?|idiots?|stupid|dumb|laugh at|make fun of|pranks?|pranking|bully|bullies|bullying|beat (him|her|them|someone) up|get back at|teach (him|her|them) a lesson)\b/i],
+  ["targeting", false, /\b(the new (kid|girl|guy|boy)|from (my|our) (school|class|year|grade|work|office)|who (goes to|works at|lives (in|at|on))|lives at|(his|her|their) address)\b/i],
+  ["substances", true, /\b(alcohol|beers?|wine|vodka|booze|drunk|drinking|vapes?|vaping|weed|drugs?)\b/i],
+  ["private_place", true, /\b(my (place|house|home|room)|(your|ur) (place|house)|come over|sleep ?overs?)\b/i],
+];
+const PLAN_MSG = {
+  dating: "Intro is for plans with people, not dating. Change the wording and try again.",
+  mocking: "Plans can't put anyone down. Change the wording and try again.",
+  targeting: "Plans can't single anyone out. Intro picks who's asked.",
+  substances: "Plans for 16 and 17 year olds can't involve alcohol, vapes or drugs.",
+  private_place: "Plans for 16 and 17 year olds are in public places, not someone's home.",
+};
+const planIssue = (text, minor) => { for (const [k, minorOnly, re] of PLAN_RULES) if ((minor || !minorOnly) && re.test(text)) return k; return null; };
+
 // Demo stand-in for "people in my phone contacts"
 const DEMO_CONTACTS = ["kai", "dave"];
 
@@ -840,6 +857,8 @@ const ACT = {
   submitObjective: () => {
     readDraft();
     if (S.draft.text.length < 8) return toast("Say a bit more about what you're looking for.");
+    const issue = planIssue([S.draft.text, S.draft.when, S.draft.where].join(" "), isMinor());
+    if (issue) return toast(PLAN_MSG[issue]);
     if (!S.user.verified) sampleState("profile");
     S.used++; S.draftEdited = false;
     S.objective = { ...S.draft, month: MONTH, done: false };

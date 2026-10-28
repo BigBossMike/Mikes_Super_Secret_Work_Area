@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
 import { ageBand, bandLabel } from "@/lib/age";
 import { GROUPS, OBJECTIVE_TYPES } from "@/lib/data";
+import { PLAN_ISSUE_MESSAGE, planIssue } from "@/lib/planScreen";
 import { useApp } from "@/store/AppStore";
 
 export default function NewObjective() {
@@ -15,6 +16,9 @@ export default function NewObjective() {
 
   const submit = () => {
     if (d.text.trim().length < 8) return toast("Say a bit more about the plan.");
+    // Same check the server makes (lib/planScreen.ts), so the reason shows straight away.
+    const issue = planIssue([d.text, d.when, d.where].join(" "), actions.isMinor());
+    if (issue) return toast(PLAN_ISSUE_MESSAGE[issue]);
     actions.submitObjective();
     router.replace("/searching");
   };

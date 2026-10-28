@@ -62,6 +62,6 @@ Claude's side (code), in order:
 5. ID provider wired in place of verify-stub, once Mike has chosen (its webhook sets `verified_at` and the date of birth with the service role).
 6. Bluetooth test on two phones with the development build; tune the signal and distance limits in `app/src/lib/handshake.ts` and the server function together. Mike's iPhone has the build. Second phone (Mike's are all Apple): register it with `npx eas-cli device:create` (link opened on that phone), then `npx eas-cli build:resign --platform ios --target-profile development` adds it to the existing build. An Android development build was also started 28th October 2026 (Mike wants Android covered). Expo free plan: 30 cloud builds a month (15 iOS, 15 Android).
 7. In-app purchases through RevenueCat; its webhook updates `subscriptions` and `objective_credits`.
-8. Objective screening for mocking or targeting language before anyone is asked.
+8. Plan screening: word-list layer done 28th October 2026 (migration 0007, `app/src/lib/planScreen.ts`, mock-up, `scripts/live-plan-screen.mjs` passes). Blocks dating, putting people down and singling someone out; for 16-17 also alcohol, vapes, drugs and homes. `planScreen.fixtures.json` is the shared test list; change all three places together. Next layer: AI screening (needs an Anthropic API key).
 9. Store assets (icon, splash, listings, privacy labels), EAS production build, TestFlight pilot.
 10. Launch per `docs/launch-plan.md`.

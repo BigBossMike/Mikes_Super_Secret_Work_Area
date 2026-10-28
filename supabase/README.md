@@ -10,6 +10,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
+| `migrations/0007_plan_screening.sql` | Refuses plans that read as dating, put someone down or single someone out (and for 16-17: alcohol, vapes, drugs, homes). |
 | `migrations/0006_parent_mode.sql` | Parent mode: invites to my number, decline, a parent pausing their teen, and the teen told when a parent declines. |
 | `migrations/0005_push.sql` | Push notifications: phone tokens, and triggers that send through Expo (pg_net). A parent's approval now starts the matching. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
@@ -55,6 +56,7 @@ These are checked by the database itself, so they hold even if someone tampers w
   - anyone who's already had 3 requests this week
 - **Ganging-up protection:** if, in the last 14 days, someone has had requests from people who know each other, Intro skips them and raises a safety flag. "Know each other" means they've met through Intro.
 - **Parent approval:** under-18 objectives wait for the parent's OK if the parent has that setting on. If a parent says no, any $5 credit is refunded.
+- **Plan screening:** before anyone is asked, a plan (text, when and where) that reads as dating, puts someone down or singles someone out is refused with a plain reason (`objective_not_allowed`). For 16 and 17 year olds, so is alcohol, vapes, drugs or meeting at someone's home. Same lists as `app/src/lib/planScreen.ts` and the mock-up.
 - **Locked chat:** messages with phone numbers, emails, @handles, links or social app names are rejected until the two people have connected in person.
 - **Plans:** 1 free objective a month. After that, each one needs a $5 credit, unless the person is on the $10 unlimited plan.
 - **Contact details unlock only after an in-person connection**, which only the server can record.
@@ -124,7 +126,7 @@ Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Step
 
 - **ID verification:** connect a provider (Stripe Identity, Persona, ConnectID, etc.). Its webhook should set `verified_at` and the real date of birth using the service role.
 - **Payments:** connect RevenueCat (or Apple and Google directly). Its webhook updates `subscriptions` and `objective_credits`.
-- **Objective screening:** check objectives for mocking or targeting language before anyone is asked.
+- **AI plan screening:** the word lists catch the obvious. A model (Claude) should read each plan for meaning before launch, with people making the serious calls.
 - **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.
 - **Ganging-up detection** only knows about people who've met through Intro. It can't yet see friendships that exist outside the app. Same-school and same-device signals could be added.
 

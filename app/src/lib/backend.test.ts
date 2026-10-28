@@ -1,7 +1,7 @@
 /// <reference types="node" />
 import { createHash } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { contactLockedKind, friendlyError, isLimitReached } from "@/backend/errors";
+import { contactLockedKind, friendlyError, isLimitReached, planRefusedKind } from "@/backend/errors";
 import type { MyMatchRow, MyRequestRow, ProfileRow } from "@/backend/types";
 import { chatFromRows, guardianFromRow, hueFor, inviteFromRow, matchFromRow, requestFromRow, teenFromRows, userFromProfile } from "@/store/liveMapping";
 import { normalisePhone, phoneHash, phoneHashes } from "./phoneHash";
@@ -110,6 +110,12 @@ describe("database rows to screen state", () => {
     expect(t.pending.map(p => p.id)).toEqual(["o1"]);
     expect(t.meetups).toEqual([{ with: "Sam", place: "Toowong Sports Centre", at: "2026-10-29T08:00:00Z" }]);
     expect(JSON.stringify(t)).not.toMatch(/message|chat/i);
+  });
+  it("explains a refused plan", () => {
+    const e = { message: "objective_not_allowed", details: "targeting", hint: null, code: "P0001" };
+    expect(planRefusedKind(e)).toBe("targeting");
+    expect(friendlyError(e)).toBe("Plans can't single anyone out. Intro picks who's asked.");
+    expect(planRefusedKind({ message: "objective_limit_reached" })).toBeNull();
   });
   it("gives the same colour for the same id", () => {
     expect(hueFor("abc")).toBe(hueFor("abc"));
