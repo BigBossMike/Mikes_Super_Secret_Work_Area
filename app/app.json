@@ -39,7 +39,9 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Intro uses the camera to scan the other person's code when you connect in person, and to take your profile photo."
+          "cameraPermission": "Intro uses the camera to scan the other person's code when you connect in person, and to take your profile photo.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
@@ -62,7 +64,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Intro uses your photos to set your profile photo.",
-          "cameraPermission": "Intro uses the camera to scan the other person's code when you connect in person, and to take your profile photo."
+          "cameraPermission": "Intro uses the camera to scan the other person's code when you connect in person, and to take your profile photo.",
+          "microphonePermission": false
         }
       ],
       "expo-notifications"
