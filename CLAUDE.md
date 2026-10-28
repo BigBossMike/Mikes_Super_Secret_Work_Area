@@ -43,7 +43,7 @@ When changing a matching or privacy rule, change it in all three places (`app/sr
 
 ## Next steps
 
-1. Run the app live against the Supabase project (created 27th October 2026, not yet set up). Waiting on Mike for app/.env.local with the URL, anon key, a Supabase access token and the database password (see app/README.md, Going live). Then: push the migration, deploy connect-handshake and verify-stub, set test phone numbers, run `node app/scripts/live-smoke.mjs`. The app side is wired but has only been typechecked.
+1. Use the app live on a phone. The Supabase project (Sydney) is set up as of 28th October 2026: migrations pushed, both functions deployed, phone sign-in on with test numbers, `node app/scripts/live-smoke.mjs` passes. Settings are in app/.env.local (not committed). Start with `cd app && npx expo start --clear`, open in Expo Go, sign in with a test number, fix what the screens get wrong. Real SMS codes need Twilio under Authentication → Providers → Phone.
 2. Choose an ID check provider. Comparison and vendor questions in `docs/id-provider-comparison.md`.
 3. Test the Bluetooth connect on two real phones. The code and the QR fallback are built (`app/src/handshake/`), but Bluetooth needs a development build (`npx expo run:android`, `npx expo run:ios` or EAS Build) and tuning of the signal and distance limits.
 4. Set up in-app purchases.

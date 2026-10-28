@@ -7,7 +7,10 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | File | What it is |
 |---|---|
 | `migrations/0001_init.sql` | Builds the whole database: tables, safety rules, matching, and permissions. |
+| `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
+| `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
+| `functions/verify-stub/index.ts` | Pilot-only: marks a person verified from the date of birth they type. Off unless the secret `STUB_VERIFY_ENABLED` is `true`. |
 | `seed.sql` | Made-up Brisbane test people. For testing only, never the live app. |
 | `tests/` | Automated checks that the safety rules work (90 of them). |
 
@@ -86,14 +89,17 @@ The app side is in `app/src/handshake/`. The code recipe and the checks are mirr
 
 ## Setting it up (about 15 minutes)
 
+Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Steps 2, 4 and 5 were run from the command line; the record is in `../docs/decisions.md`.
+
 1. **Create a project.** Sign up at supabase.com and create a new project. Choose the **Sydney** region so data stays in Australia.
 2. **Build the database.** In the project, open **SQL Editor**, paste in the whole of `migrations/0001_init.sql`, and press **Run**.
-   - Alternatively, with the Supabase command-line tool: `supabase link` then `supabase db push`.
+   - Alternatively, with the Supabase command-line tool: `supabase link --project-ref <ref>` then `supabase db push --linked`. The tool reads `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` from the environment (the app's `.env.local` holds them).
 3. **Optional test data.** For a test project only, run `seed.sql` the same way. Don't do this on the live project.
-4. **Turn on phone sign-in** under Authentication → Providers → Phone. Everyone signs in with a mobile number and an SMS code, and parents claim invites the same way. Sending real SMS needs an SMS provider (Twilio or similar) set up on that page. For testing, add **test phone numbers with fixed codes** on the same page, so no SMS is sent.
-5. **Deploy the server functions** with the command-line tool: `supabase functions deploy connect-handshake` and `supabase functions deploy verify-stub`.
+4. **Turn on phone sign-in** under Authentication → Providers → Phone. Everyone signs in with a mobile number and an SMS code, and parents claim invites the same way. Sending real SMS needs an SMS provider (Twilio or similar) set up on that page. For testing, add **test phone numbers with fixed codes** on the same page, so no SMS is sent. The same setting can be made with the Management API (`PATCH /v1/projects/<ref>/config/auth` with `external_phone_enabled`, `sms_test_otp` and `sms_test_otp_valid_until`, which must be given together).
+5. **Deploy the server functions** with the command-line tool: `supabase functions deploy connect-handshake --use-api` and `supabase functions deploy verify-stub --use-api` (`--use-api` means no Docker is needed).
    - `verify-stub` marks people verified from the date of birth they type. **Pilot only.** Switch it on with `supabase secrets set STUB_VERIFY_ENABLED=true`, and turn it off (`supabase secrets unset STUB_VERIFY_ENABLED`) once the ID-check provider is in.
-6. **Connect the app.** Copy the **Project URL** and **anon key** from Project Settings → API into `app/.env.local` (see `app/.env.example`). Never put the **service_role** key in the app. It's for server code only.
+6. **Connect the app.** Copy the **Project URL** (built from the Project ID: `https://<id>.supabase.co`) and the **publishable key** from Project Settings → API Keys into `app/.env.local` (see `app/.env.example`). Never put a **secret** or **service_role** key in the app. Those are for server code only.
+7. **Check it end to end:** `cd app && TEST_PHONES="61491570101=123456,61491570102=123456" node scripts/live-smoke.mjs` finishes with `ALL PASSED`. Each run needs a pair of test numbers that haven't been matched before.
 
 ## Still to do before launch
 

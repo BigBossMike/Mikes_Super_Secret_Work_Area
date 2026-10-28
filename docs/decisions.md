@@ -35,3 +35,13 @@ A record of what Mike decided while building the first version (26 October 2026)
 - `app/src/lib/handshake.ts`: the connect rules, the same as the server's. 36 rule tests pass. Typecheck passes.
 - Not yet tested on real phones. Bluetooth needs a development build and two phones; the QR code works in Expo Go.
 - Server function: the QR press window is now the press lifetime (2 minutes), since the scanned code itself proves freshness.
+
+## Third session (28 October 2026): live on Supabase
+
+- Supabase project `Intro`, ref `dneslkrbeiotsnckazkt`, region Oceania (Sydney), free plan, organisation Cavalry Software.
+- `supabase/config.toml` added by `supabase init`; project linked; `0001_init.sql` and `0002_contacts_upsert.sql` pushed.
+- `connect-handshake` and `verify-stub` deployed (`--use-api`, no Docker). Secret `STUB_VERIFY_ENABLED=true` set: pilot verification from the typed date of birth.
+- Phone sign-in on. Test numbers with fixed codes: `+61491570101` to `+61491570106` (code 123456) for the smoke test, plus Mike's own mobile (code given in chat, not written down here). No SMS provider yet, so only those numbers can sign in.
+- `app/scripts/live-smoke.mjs`: ALL PASSED (sign-in, verify, objective, match, request, locked chat, QR handshake, unlocked details). Two fixes on the way: the contacts update grant needed `id` for upserts (migration 0002), and the script's objective text had a timestamp that read as a phone number.
+- App keys: the project uses the new `sb_publishable_` key in place of the legacy anon key. The functions still read `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` from the runtime, which works.
+- Not yet done: the screens on a real phone in live mode, Twilio for real SMS, Bluetooth on two phones.

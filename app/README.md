@@ -2,7 +2,7 @@
 
 The real Intro app, built with Expo (React Native) so one codebase runs on iPhone and Android.
 
-**Status:** all screens work end to end using sample people stored on the phone (demo mode). The same screens run live against the Supabase backend in `../supabase/` when the two settings in `.env.example` are filled in. The live mode is wired up but has not yet been run against a real project. The in-person connect (Bluetooth, with a QR code fallback) is built but not yet tested on real phones.
+**Status:** all screens work end to end using sample people stored on the phone (demo mode). The same screens run live against the Supabase backend in `../supabase/` when the two settings in `.env.example` are filled in. The live mode was run end to end against the real Supabase project on 28th October 2026 (`scripts/live-smoke.mjs`, all passed); the screens themselves have not yet been used live on a phone. The in-person connect (Bluetooth, with a QR code fallback) is built but not yet tested on real phones.
 
 ## What's in here
 
@@ -31,7 +31,7 @@ npm run typecheck
 ## Going live
 
 1. Set up the Supabase project (`../supabase/README.md`, "Setting it up").
-2. Copy `.env.example` to `.env.local` and fill in the Project URL and anon key.
+2. Copy `.env.example` to `.env.local` and fill in the Project URL and the publishable (anon) key. The same file also holds `SUPABASE_ACCESS_TOKEN` and `SUPABASE_DB_PASSWORD` for the command-line steps; none of the four lines are committed.
 3. Restart the dev server: `npx expo start --clear`.
 
 What changes in live mode:
@@ -66,7 +66,7 @@ Or use EAS Build with a development profile. The signal strength and distance li
 
 ## Still to do before launch
 
-1. Run the live mode against a real Supabase project and fix what breaks. The code is wired; it has only been typechecked.
+1. Use the live mode on a phone (Expo Go, sign in with a test number) and fix what the screens get wrong. The end-to-end script passes.
 2. ID verification provider (for example Stripe Identity or ConnectID).
 3. Test the Bluetooth connect on two phones with a development build, and tune the limits.
 4. Parent app: either a separate app or a parent mode in this one.

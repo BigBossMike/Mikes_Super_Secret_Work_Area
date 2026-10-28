@@ -68,7 +68,7 @@ async function handshake(u, body) {
   const bad = await A.db.from("objectives").insert({ owner_id: A.id, type: "sport", text: "Fifth player, text me on 0491 570 156", group_size: 4 });
   ok("A: objective with a phone number is refused", Boolean(bad.error?.message.includes("contact_details_locked")), bad.error?.message);
 
-  const objective = must(await A.db.from("objectives").insert({ owner_id: A.id, type: "sport", text: `A fifth player for Tuesday football ${Date.now()}`.slice(0, 120), when_text: "Tuesdays, 7pm", where_text: "Toowong", group_size: 4 }).select("*").single());
+  const objective = must(await A.db.from("objectives").insert({ owner_id: A.id, type: "sport", text: `A fifth player for Tuesday football (${Math.random().toString(36).replace(/[^a-z]/g, "").slice(0, 4)})`, when_text: "Tuesdays, 7pm", where_text: "Toowong", group_size: 4 }).select("*").single());
   ok("A: objective created and active", objective.status === "active", objective.status);
 
   const asked = must(await A.db.rpc("find_matches", { p_objective: objective.id }));
