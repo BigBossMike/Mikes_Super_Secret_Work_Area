@@ -9,6 +9,7 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0001_init.sql` | Builds the whole database: tables, safety rules, matching, and permissions. |
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
+| `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
 | `functions/verify-stub/index.ts` | Pilot-only: marks a person verified from the date of birth they type. Off unless the secret `STUB_VERIFY_ENABLED` is `true`. |
@@ -49,7 +50,6 @@ These are checked by the database itself, so they hold even if someone tampers w
   - anyone paused or blocked
   - anyone from the same school if either person has "keep my school out" on
   - anyone this person has asked before or already met
-  - anyone more than 25 km away
   - anyone who's already had 3 requests this week
 - **Ganging-up protection:** if, in the last 14 days, someone has had requests from people who know each other, Intro skips them and raises a safety flag. "Know each other" means they've met through Intro.
 - **Parent approval:** under-18 objectives wait for the parent's OK if the parent has that setting on. If a parent says no, any $5 credit is refunded.
@@ -109,7 +109,6 @@ Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Step
 - **Payments:** connect RevenueCat (or Apple and Google directly). Its webhook updates `subscriptions` and `objective_credits`.
 - **Push notifications** for new requests, messages and parent alerts.
 - **Objective screening:** check objectives for mocking or targeting language before anyone is asked.
-- **Matching runs only on suburb centres.** The suburb list only covers inner Brisbane so far. Add more before launch.
 - **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.
 - **Ganging-up detection** only knows about people who've met through Intro. It can't yet see friendships that exist outside the app. Same-school and same-device signals could be added.
 

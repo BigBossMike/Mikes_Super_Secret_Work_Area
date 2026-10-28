@@ -26,7 +26,7 @@ We follow the Australian Privacy Principles in the Privacy Act 1988 (Cth).
 | First name and photo | Shown to people you are matched with, once they agree | You |
 | Date of birth | Age group (16–17 or 18+) and age ranges. Never shown as a date; people see your age. | The ID check (during the pilot, typed by you) |
 | Verified status and date | Confirms the ID check is done | The ID check provider |
-| Suburb | Matching within Brisbane. Only the suburb, never your address. | You |
+| City | Intro runs in Brisbane for now. No suburb, no address. | The app |
 | Interests and free times | Matching | You |
 | School or workplace (optional) | "Keep my school out" and "keep my workplace out". Never shown to anyone. | You |
 | Cultural background (optional) | Matching, only if you choose to add it. Never shown to anyone. See section 4. | You |

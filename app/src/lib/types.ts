@@ -47,13 +47,13 @@ export interface Match {
   id: string;
   score: number;
   why: string[];
-  distanceKm: number;
   status: MatchStatus;
 }
 
 export interface Seeker {
   age: number;
-  suburb: string;
+  /** The city. Matching is city-wide, so it plays no part in scoring. */
+  suburb?: string;
   interests: string[];
   times: string[];
   school?: string;

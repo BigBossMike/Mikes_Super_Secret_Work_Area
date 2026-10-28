@@ -70,15 +70,15 @@ describe("database rows to screen state", () => {
   });
   it("keeps people anonymous until they agree", () => {
     const asking: MyMatchRow = { request_id: "r1", status: "asking", score: null, reasons: [], candidate_id: null, first_name: null, age: null, suburb: null, photo_url: null };
-    expect(matchFromRow(asking)).toEqual({ match: { id: "r1", score: 0, why: [], distanceKm: 0, status: "asking" }, person: null });
-    const agreed: MyMatchRow = { ...asking, status: "agreed", score: 91, reasons: ["Both into football", "3 km apart"], candidate_id: "c1", first_name: "Jordan", age: 17, suburb: "Toowong", photo_url: "c1/abc.jpg" };
+    expect(matchFromRow(asking)).toEqual({ match: { id: "r1", score: 0, why: [], status: "asking" }, person: null });
+    const agreed: MyMatchRow = { ...asking, status: "agreed", score: 91, reasons: ["Both into football", "Both free Tuesday nights"], candidate_id: "c1", first_name: "Jordan", age: 17, suburb: "Toowong", photo_url: "c1/abc.jpg" };
     const m = matchFromRow(agreed);
-    expect(m.match).toEqual({ id: "r1", score: 91, why: ["Both into football", "3 km away"], distanceKm: 3, status: "agreed" });
+    expect(m.match).toEqual({ id: "r1", score: 91, why: ["Both into football", "Both free Tuesday nights"], status: "agreed" });
     expect(m.person).toMatchObject({ id: "r1", name: "Jordan", age: 17, suburb: "Toowong", photoPath: "c1/abc.jpg" });
     expect(matchFromRow({ ...asking, status: "expired" }).match.status).toBe("passed");
   });
   it("maps a request to be put forward", () => {
-    const r: MyRequestRow = { request_id: "r2", status: "asking", reasons: ["Both into movies", "2 km apart"], objective_id: "o1", objective_text: "Someone to see a movie with",
+    const r: MyRequestRow = { request_id: "r2", status: "asking", reasons: ["Both into movies"], objective_id: "o1", objective_text: "Someone to see a movie with",
       when_text: null, where_text: null, group_size: 2, requester_id: "u9", first_name: "Sam", age: 17, suburb: "Paddington", photo_url: null, created_at: "" };
     const { request, person } = requestFromRow(r);
     expect(request).toMatchObject({ id: "r2", name: "Sam", group: 2, status: "pending", why: ["Both into movies"] });

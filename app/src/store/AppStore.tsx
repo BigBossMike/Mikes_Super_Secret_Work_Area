@@ -7,7 +7,7 @@ import { LIVE } from "@/backend/client";
 import { useToast } from "@/components/ui";
 import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
-import { DEMO_CONTACT_IDS, defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
+import { CITY, DEMO_CONTACT_IDS, defaultTypeFor, OBJECTIVE_TYPES, SAMPLE_PEOPLE } from "@/lib/data";
 import { findMatches } from "@/lib/matching";
 import type { Match } from "@/lib/types";
 import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
@@ -38,19 +38,19 @@ const REPLIES: Record<string, string[]> = {
 
 function initial(): State {
   return {
-    user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, suburb: "Paddington", interests: ["Football", "Music", "Movies"],
+    user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, suburb: CITY, interests: ["Football", "Music", "Movies"],
       times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false,
       workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null },
     guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
     plan: "free", credits: 0, used: 0,
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
     objective: null, matches: [], searchPhase: "idle", chats: {}, lastConnected: null,
-    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday",
-      why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
-      { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner",
-      why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
-      { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river",
-      why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
+    requests: [{ id: "sam", name: "Sam", age: 17, suburb: CITY, hue: 15, group: 2, text: "Someone to see a movie with on a Saturday",
+      why: ["Both into movies", "Free Saturdays"], status: "pending" },
+      { id: "dana", name: "Dana", age: 38, suburb: CITY, hue: 265, group: 0, text: "Someone to join me for a midweek dinner",
+      why: ["Both into food", "Free weeknights"], status: "pending" },
+      { id: "pat", name: "Pat", age: 57, suburb: CITY, hue: 185, group: 0, text: "A walking buddy for early mornings along the river",
+      why: ["Both into walking", "Free weeknights"], status: "pending" }],
     session: "in", hasProfile: true,
   };
 }

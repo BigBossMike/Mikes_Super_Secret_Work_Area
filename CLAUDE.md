@@ -57,7 +57,7 @@ Claude's side (code), in order:
 
 1. Profile photos: done 28th October 2026 (migration 0003, `app/src/components/PhotoPicker.tsx`, `scripts/live-photos.mjs` passes). Not yet tried on a phone.
 2. Push notifications: expo-notifications, device tokens stored, a server function that sends for requests, answers, messages and parent alerts. Discreet mode means the text is only "Intro: you have an update".
-3. Brisbane-wide suburb list (Greater Brisbane) in the migration and the app. Today it is inner Brisbane only.
+3. City, not suburb: done 28th October 2026 (migration 0004). Nobody is asked for a suburb; matching is Brisbane-wide with no distance scoring. More cities later.
 4. Parent mode in the same app: a parent signs in with the invited number and sees the parent screens, never chats.
 5. ID provider wired in place of verify-stub, once Mike has chosen (its webhook sets `verified_at` and the date of birth with the service role).
 6. EAS development build for the Bluetooth test on two phones; tune the signal and distance limits in `app/src/lib/handshake.ts` and the server function together.

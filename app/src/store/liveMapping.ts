@@ -56,9 +56,6 @@ export function objectiveFromRow(o: ObjectiveRow, monthName: string): Objective 
   return { type: o.type, text: o.text, when: o.when_text ?? "", where: o.where_text ?? "", group: o.group_size, month: monthName, done: o.status === "done" };
 }
 
-/** "3 km apart" -> 3 */
-const kmFrom = (reasons: string[]) => Number(reasons.map(r => /^(\d+) km apart$/.exec(r)?.[1]).find(Boolean) ?? 0);
-
 /** The requester's view: a match is keyed by its request id, and people stay anonymous until they agree. */
 export function matchFromRow(m: MyMatchRow): { match: Match; person: Person | null } {
   const agreed = m.status === "agreed" && m.candidate_id && m.first_name;
@@ -66,8 +63,7 @@ export function matchFromRow(m: MyMatchRow): { match: Match; person: Person | nu
     match: {
       id: m.request_id,
       score: m.score ?? 0,
-      why: (m.reasons ?? []).filter(r => !/ km apart$/.test(r)).concat(kmFrom(m.reasons ?? []) ? [`${kmFrom(m.reasons)} km away`] : []),
-      distanceKm: kmFrom(m.reasons ?? []),
+      why: m.reasons ?? [],
       status: m.status === "agreed" ? "agreed" : m.status === "asking" ? "asking" : "passed",
     },
     person: agreed
@@ -87,7 +83,7 @@ export function requestFromRow(r: MyRequestRow): { request: IncomingRequest; per
       hue: hueFor(r.requester_id),
       group: r.group_size,
       text: r.objective_text,
-      why: (r.reasons ?? []).filter(x => !/ km apart$/.test(x)),
+      why: r.reasons ?? [],
       status: r.status === "asking" ? "pending" : r.status === "agreed" ? "accepted" : "declined",
     },
     person: { id: r.request_id, name: r.first_name, lastName: "", age: r.age, suburb: r.suburb, interests: [], times: [], hue: hueFor(r.requester_id), photoPath: r.photo_url },

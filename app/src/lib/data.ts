@@ -1,15 +1,8 @@
 import type { ObjectiveType, Person } from "./types";
 
-// Suburb centroids on a rough km grid around Paddington. The real app uses
-// suburb centroids from the database, never anyone's exact location.
-export const SUBURBS: Record<string, [number, number]> = {
-  Paddington: [0, 0],
-  Toowong: [-2, -3],
-  "Spring Hill": [2, 1],
-  "New Farm": [5, 1],
-  Indooroopilly: [-6, -5],
-  "Kelvin Grove": [1, 3],
-};
+// Intro runs in one city at a time. Matching is city-wide, so nobody is asked
+// for a suburb and distance plays no part in who is put forward.
+export const CITY = "Brisbane";
 
 export const INTERESTS = ["Football", "Cricket", "Running", "Walking", "Gym", "Dance", "Music", "Movies", "Food", "Trivia", "Gaming", "Art", "Study"];
 export const TIMES = ["Weeknights", "Tuesday nights", "Saturdays", "Sundays"];

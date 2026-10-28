@@ -74,8 +74,10 @@ describe("findMatches", () => {
     expect(work).not.toContain("raj");
   });
   it("prefers people closer in age for adults", () => {
-    const m = findMatches({ age: 55, suburb: "Toowong", interests: ["Food", "Walking"], times: ["Weeknights"], keepSchoolOut: false }, dinner, SAMPLE_PEOPLE);
+    // Margaret (58) and Helen (52) share the same interests and free time; at 57 Margaret is the closer in age.
+    const m = findMatches({ age: 57, interests: ["Food", "Walking"], times: ["Weeknights"], keepSchoolOut: false }, dinner, SAMPLE_PEOPLE);
     expect(m[0].id).toBe("margaret");
+    expect(m.find(x => x.id === "helen")!.score).toBeLessThan(m[0].score);
     expect(defaultTypeFor(55)).toBe("dinner");
     expect(defaultTypeFor(16)).toBe("sport");
   });

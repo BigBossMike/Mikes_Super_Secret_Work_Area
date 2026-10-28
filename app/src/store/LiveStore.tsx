@@ -13,7 +13,7 @@ import { ageFrom, isMinor as minorAge } from "@/lib/age";
 import { blockedReason } from "@/lib/contactFilter";
 import { newPhotoPath, PHOTO_URL_TTL_S } from "@/lib/photos";
 import { fromBase64 } from "@/lib/sha256";
-import { defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
+import { CITY, defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
 import { type Actions, Ctx, type Guardian, MONTH_NAME, type State, type Store, type User } from "./context";
 import { chatFromRows, guardianFromRow, matchFromRow, messageFromRow, objectiveFromRow, relToDb, requestFromRow, userFromProfile } from "./liveMapping";
@@ -24,7 +24,7 @@ const GUARDIAN_POLL_MS = 4000;
 function empty(): State {
   const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
   return {
-    user: { name: "", dob: "", age: null, verified: false, suburb: "Paddington", interests: [], times: [], school: "", background: "",
+    user: { name: "", dob: "", age: null, verified: false, suburb: CITY, interests: [], times: [], school: "", background: "",
       keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null, photoPath: null },
     guardian: guardianFromRow(null, ""),
     plan: "free", credits: 0, used: 0, remaining: 1,

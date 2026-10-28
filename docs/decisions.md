@@ -22,6 +22,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 16 | **Build and launch, 16+ as originally planned. No concierge pilot.** Market test is the app itself. Decided 27 October 2026 after `market-critique.md`. | Mike: a spreadsheet and WhatsApp don't test it; build, market, then fail if it fails. Worst case is an app nobody uses. |
 | 17 | Live app: sign in by mobile number and SMS code (Supabase phone auth). During the pilot the server function verify-stub marks people verified from the date of birth they type; it only works when a secret is set and is replaced by the ID provider before launch. Order at sign-up is age, profile, then parent sign-off. Decided 27 October 2026. | Parents claim invites by phone number, so phone sign-in is needed anyway. The database needs the profile before a parent invite or a verification. |
 | 18 | **Build to launch.** The live app ran on Mike's phone on 28th October 2026 ("Worked. Looks good. I like it. Let's make it happen"). Build order in `CLAUDE.md`, Next steps. | Mike: make it happen. |
+| 19 | **City, not suburb.** Nobody is asked for a suburb; everyone is in Brisbane for now and matching is city-wide with no distance in the score. The suburb list stays only so the connect record can name the nearest suburb to where two people met. Decided 28th October 2026. | Mike: a city is easier; the six-suburb list was a sample. |
 
 ## State at the end of the first session
 

@@ -31,7 +31,7 @@ export default function Searching() {
           <View style={{ width: 140, height: 140, borderRadius: 70, backgroundColor: t.goSoft, alignItems: "center", justifyContent: "center" }}><Logo /></View>
         </View>
         <T variant="big" style={{ fontSize: 18, textAlign: "center" }}>
-          {waitingOnParent ? `Waiting for ${state.guardian.name} to OK your plan…` : `Finding people near ${state.user.suburb}…`}
+          {waitingOnParent ? `Waiting for ${state.guardian.name} to OK your plan…` : `Finding people in ${state.user.suburb}…`}
         </T>
         <T variant="small" style={{ textAlign: "center" }}>
           {waitingOnParent ? "Usually takes a few minutes. Sped up for the demo." : "Checking interests, free time and distance."}

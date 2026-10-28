@@ -255,7 +255,7 @@ ul.activity li { display: flex; flex-direction: column; gap: 2px; padding-left: 
 const TODAY = new Date();
 const MONTH = TODAY.toLocaleString("en-AU", { month: "long" });
 
-const SUBURBS = { "Paddington": [0, 0], "Toowong": [-2, -3], "Spring Hill": [2, 1], "New Farm": [5, 1], "Indooroopilly": [-6, -5], "Kelvin Grove": [1, 3] };
+const CITY = "Brisbane"; // one city for now; matching is city-wide, nobody is asked for a suburb
 const INTERESTS = ["Football", "Cricket", "Running", "Walking", "Gym", "Dance", "Music", "Movies", "Food", "Trivia", "Gaming", "Art", "Study"];
 const TIMES = ["Weeknights", "Tuesday nights", "Saturdays", "Sundays"];
 const OBJ_TYPES = [
@@ -302,15 +302,15 @@ let S;
 function fresh() {
   return {
     screen: "welcome", tab: "home", back: null,
-    user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, verifying: false, error: "", suburb: "Paddington",
+    user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, verifying: false, error: "", suburb: CITY,
             interests: ["Football", "Music", "Movies"], times: ["Saturdays", "Weeknights"], background: "", school: "", noSchool: true, paused: false,
             workplace: "", noWork: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null },
     plan: "free", credits: 0, used: 0,
     objective: null, draft: { type: OBJ_TYPES[0].id, text: OBJ_TYPES[0].text, when: OBJ_TYPES[0].when, where: OBJ_TYPES[0].where, group: OBJ_TYPES[0].group },
     matches: [], chatWith: null, chats: {}, connectStage: 0, qrMode: "show", qrBusy: false, lastConnected: null,
-    requests: [{ id: "sam", name: "Sam", age: 17, suburb: "Paddington", hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Same suburb", "Free Saturdays"], status: "pending" },
-               { id: "dana", name: "Dana", age: 38, suburb: "Paddington", hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Same suburb", "Free weeknights"], status: "pending" },
-               { id: "pat", name: "Pat", age: 57, suburb: "Toowong", hue: 185, group: 0, text: "A walking buddy for early mornings along the river", why: ["Both into walking", "1 km away", "Free weeknights"], status: "pending" }],
+    requests: [{ id: "sam", name: "Sam", age: 17, suburb: CITY, hue: 15, group: 2, text: "Someone to see a movie with on a Saturday", why: ["Both into movies", "Free Saturdays"], status: "pending" },
+               { id: "dana", name: "Dana", age: 38, suburb: CITY, hue: 265, group: 0, text: "Someone to join me for a midweek dinner", why: ["Both into food", "Free weeknights"], status: "pending" },
+               { id: "pat", name: "Pat", age: 57, suburb: CITY, hue: 185, group: 0, text: "A walking buddy for early mornings along the river", why: ["Both into walking", "Free weeknights"], status: "pending" }],
     planNotice: "", searchPhase: 0,
     parent: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true }
   };
@@ -319,7 +319,6 @@ S = fresh();
 
 const $app = document.getElementById("app");
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-const km = (a, b) => { const p = SUBURBS[a], q = SUBURBS[b]; return Math.max(1, Math.round(Math.hypot(p[0] - q[0], p[1] - q[1]))); };
 const band = age => age < 18 ? "16–17" : "18+";
 const av = (p, cls = "") => `<div class="av ${cls}" style="background:hsl(${p.hue} 55% 42%)">${esc(p.name[0])}</div>`;
 const person = id => PEOPLE.find(p => p.id === id) || S.requests.find(r => r.id === id);
@@ -355,7 +354,7 @@ const ageRange = (age, min, max) => {
 // Demo stand-in for "people in my phone contacts"
 const DEMO_CONTACTS = ["kai", "dave"];
 
-// Matching: same age band only, then score on objective fit, shared interests, distance and free time
+// Matching: same age band only, then score on objective fit, shared interests and free time (city-wide, no distance)
 function findMatches() {
   const type = OBJ_TYPES.find(t => t.id === S.objective.type);
   const u = S.user, same = (a, b) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -369,14 +368,12 @@ function findMatches() {
     const shared = p.interests.filter(i => S.user.interests.includes(i));
     const fit = p.interests.filter(i => type.tags.includes(i));
     const times = p.times.filter(t => S.user.times.includes(t));
-    const dist = km(S.user.suburb, p.suburb);
-    const raw = fit.length * 14 + shared.length * 9 + times.length * 6 + Math.max(0, 14 - dist * 2) - Math.min(20, Math.abs(p.age - S.user.age));
+    const raw = fit.length * 14 + shared.length * 9 + times.length * 6 - Math.min(20, Math.abs(p.age - S.user.age));
     const why = [];
     if (fit.length) why.push(`Into ${fit[0].toLowerCase()}`);
     if (shared.length) why.push(`${shared.length} shared interest${shared.length > 1 ? "s" : ""}`);
     if (times.length) why.push(`Free ${times[0] === "Weeknights" ? "weeknights" : times[0]}`);
-    why.push(`${dist} km away`);
-    return { id: p.id, score: Math.min(97, 52 + raw), why, dist, status: "asking" };
+    return { id: p.id, score: Math.min(97, 62 + raw), why, status: "asking" };
   }).sort((a, b) => b.score - a.score).slice(0, 5);
 }
 
@@ -494,7 +491,6 @@ const SCREENS = {
     <div class="body">
       <p class="muted">Your answers are how Intro finds good matches. Only your first name and photo are shown before you meet.</p>
       <label class="f">First name<input class="input" id="pname" value="${esc(u.name)}" maxlength="20"></label>
-      <label class="f">Suburb<select class="input" id="psuburb">${Object.keys(SUBURBS).map(s => `<option ${s === u.suburb ? "selected" : ""}>${s}</option>`).join("")}</select></label>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">Things you're into</b>${chips("interests", INTERESTS, u.interests)}</div>
       <div class="f" style="display:flex;flex-direction:column;gap:8px"><b class="small">When you're usually free</b>${chips("times", TIMES, u.times)}</div>
       ${(u.age ?? 17) >= 18 ? (() => { const r = ageRange(u.age, u.ageMin, u.ageMax), lim = ageLimits(u.age); return `<div style="display:flex;flex-direction:column;gap:8px"><b class="small">Pair me with people aged</b>
@@ -560,8 +556,8 @@ const SCREENS = {
   searching: () => `<div class="scr"><div class="body searching">
     <div class="radar"><div class="logo">intro<i>.</i></div></div>
     ${S.searchPhase === 1 ? `<p class="big" style="font-size:18px">Waiting for ${esc(S.parent.name)} to OK your objective…</p>
-    <p class="small muted">Usually takes a few minutes. Sped up for the demo.</p>` : `<p class="big" style="font-size:18px">Finding people near ${esc(S.user.suburb)}…</p>
-    <p class="small muted">Checking interests, free time and distance.</p>`}</div></div>`,
+    <p class="small muted">Usually takes a few minutes. Sped up for the demo.</p>` : `<p class="big" style="font-size:18px">Finding people in ${esc(S.user.suburb)}…</p>
+    <p class="small muted">Checking interests and free time.</p>`}</div></div>`,
 
   matches: () => {
     if (!S.objective) return SCREENS.home();
@@ -818,7 +814,7 @@ const ACT = {
     const name = document.getElementById("pname").value.trim();
     if (!name) return toast("Add your first name.");
     if (S.user.interests.length < 2) return toast("Pick at least 2 things you're into.");
-    S.user.name = name; S.user.suburb = document.getElementById("psuburb").value; S.user.background = document.getElementById("pbg").value.trim();
+    S.user.name = name; S.user.suburb = CITY; S.user.background = document.getElementById("pbg").value.trim();
     const v = id => document.getElementById(id);
     if (v("pschool")) S.user.school = v("pschool").value.trim();
     if (v("pwork")) S.user.workplace = v("pwork").value.trim();
