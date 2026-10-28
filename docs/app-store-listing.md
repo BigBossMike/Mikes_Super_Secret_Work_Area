@@ -95,4 +95,4 @@ Google Data safety: same list. Data is encrypted in transit. People can ask for 
 | 5 | A short screen recording of two phones connecting. |
 | 6 | Screenshots: 6.9" and 6.5" iPhone, plus Android phone. Home, a request, matches, locked chat, Connect, connected. |
 | 7 | Privacy Policy and Terms of Use published at a public web address (both stores need the links). |
-| 8 | App icon and splash screen (the current ones are Expo's defaults). |
+| 8 | App icon and splash screen: draft done (`docs/brand/icon-and-splash-preview.png`); Mike to approve or replace. |

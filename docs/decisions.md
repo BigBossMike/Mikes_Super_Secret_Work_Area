@@ -56,6 +56,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
 - City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
 - Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.
+- Terms of use (`docs/terms-of-use.md`) and the store listing with privacy answers (`docs/app-store-listing.md`) drafted. Draft icon and splash from the brand font and colours (`docs/brand/make-icons.js` regenerates them). Android development build done (build 1271aa09).
 - Plan screening, word-list layer (migration 0007, decision 23). Database, app and mock-up agree on all 26 test phrases.
 - Parent mode built (migration 0006, decision 22). Live check passes. Open gap: the parent's age isn't checked, only their phone number.
 - iOS development build installed on Mike's iPhone (build 385efc5d). The phone registered for notifications and a test notification arrived; the tap opened Requests. The other iPhone on the Apple team (registered September 2025) no longer exists, so the Bluetooth test needs a second phone.
