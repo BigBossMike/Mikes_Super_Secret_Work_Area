@@ -26,7 +26,7 @@ Mike (the owner) is not a developer. Explain things plainly and keep fixes quick
 | `app/` | Expo (React Native) app, SDK 58. Rules in `src/lib/` (tested). Sample-data store in `src/store/AppStore.tsx`. In-person connect (Bluetooth and QR) in `src/handshake/`. |
 | `supabase/` | Database schema, security, matching, the connect-handshake function, seed data and tests. |
 | `prototype/index.html` | Single-file clickable mock-up (also published as a Claude artifact). |
-| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?), `id-provider-comparison.md` and `decisions.md` (why things are the way they are). |
+| `docs/` | Research, launch plan, ID checks and AI notes, `market-critique.md` (is Intro differentiated?), `id-provider-comparison.md`, `privacy-policy.md` (draft, holds numbered) and `decisions.md` (why things are the way they are). |
 
 ## Commands
 
@@ -49,9 +49,9 @@ Mike's side (accounts; each unblocks a step below):
 
 1. Twilio account (twilio.com): an Australian sender, then Account SID, Auth Token and Messaging Service SID into Supabase → Authentication → Providers → Phone. Until then only the test numbers can sign in.
 2. ID check provider: Stripe Identity for the pilot, or quotes from Yoti and Persona first. Comparison and vendor questions in `docs/id-provider-comparison.md`. Stripe needs a Stripe account (Australia) and its test keys.
-3. Apple Developer Program (US$99 a year) and Google Play Console (US$25 once): TestFlight and internal testing, then the stores.
+3. Apple Developer Program: Mike has an account (28th October 2026), so TestFlight is open. Google Play Console (US$25 once) only when Android goes to the store; Android testers get an install file from EAS until then.
 4. RevenueCat account (free tier) for the $5 and $10 plans, after 3.
-5. Lawyer for the age rules, privacy policy and terms. Claude drafts, the lawyer reviews.
+5. Lawyer for the age rules, privacy policy and terms, before public launch only. Privacy policy drafted 28th October 2026 (`docs/privacy-policy.md`, 8 holds to fill). Terms of use still to draft.
 
 Claude's side (code), in order:
 
