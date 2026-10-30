@@ -53,6 +53,8 @@ Note 2 – Facial age estimation (Yoti) gives an age band, not a date of birth, 
 2. Yoti. Both doors in one vendor, proven with teens, DVS as a data source, strong liveness. Quote only; expect a minimum.
 3. Persona. Both doors in one vendor, React Native SDK, startup program may cover the pilot. Otherwise a 12-month minimum.
 
+Decision (30th October 2026): Stripe Identity for the pilot. Built and waiting on Stripe keys (`CLAUDE.md`, Mike's side 2). A bank check through Yoti or Persona before public launch.
+
 Recommendation: ask Yoti and Persona for a pilot quote (500 checks, teens included, ConnectID switched on, data kept in Australia). If neither comes in under approx A$1,500 for the pilot year, start with Stripe and add the bank door later.
 
 ## Questions for each vendor

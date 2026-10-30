@@ -14,6 +14,7 @@ The real Intro app, built with Expo (React Native) so one codebase runs on iPhon
 | `src/components/PhotoPicker.tsx` | Profile photo: camera or library, squared and shrunk on the phone to 512 px JPEG. |
 | `src/lib/` | The rules: age bands, matching, blocking contact details in chat, plan screening, the connect codes and checks, photo paths. Covered by tests. |
 | `src/app/parent-home.tsx` | Parent mode: a parent signs in with the number their teen entered, approves the invite, then sees plans waiting for their OK, controls, meet-ups and activity. Never chats. |
+| `src/app/id-check.tsx`, `src/identity/` | The ID check after the profile: Stripe's sheet (photo ID and a live selfie), or the pilot check until Stripe's keys are on the server. |
 | `src/notifications/` | Push notifications: register the phone (`push.ts`) and open the right screen on tap (`PushRouting.tsx`). The database sends them. |
 | `src/handshake/` | The in-person connect: Bluetooth (`ble.ts`), location, the server calls (`api.ts`, with a stand-in for the demo build) and the `useHandshake` hook the Connect screens use. |
 | `src/store/` | What the app remembers. `context.ts` is the shape the screens see; `AppStore.tsx` fills it with sample people (demo); `LiveStore.tsx` fills it from Supabase; `liveMapping.ts` turns database rows into screen state (tested). |

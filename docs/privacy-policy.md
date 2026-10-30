@@ -101,7 +101,7 @@ We share information only with the services that run Intro, and only what each n
 | Service | What | Where |
 |---|---|---|
 | Supabase | Hosts the database and the app's server code | Sydney, Australia |
-| ID check provider [Hold 5] | Your ID document and selfie, for the check. Returns verified status and date of birth. | [Hold 5] |
+| Stripe (ID check) [Hold 5] | Your ID document and selfie, for the check. Returns verified status and date of birth. Intro then asks Stripe to delete the images and data. | [Hold 5] |
 | SMS provider [Hold 6] | Your mobile number, to send the sign-in code | [Hold 6] |
 | Apple and Google | Payments, app distribution, notifications | United States |
 | Expo | Delivering notifications to your phone (the notification text, your notification token) | United States |

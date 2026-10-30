@@ -29,6 +29,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 | 23 | **Plans are screened before anyone is asked.** Refused for everyone: dating, putting people down, singling someone out ("the new kid", "from my school"). Refused for 16-17 only: alcohol, vapes, drugs, someone's home. Word lists first, in the database, app and mock-up, with one shared test list; AI screening is the next layer. Decided 28th October 2026. | Mike: it must never become a kiddie dating app, and plans must not be used to target anyone. Word lists are free and predictable; they miss subtle cases, hence the AI layer. |
 | 24 | **Pricing: 7-day free trial, then $7.99 a month** for as many plans as you like (replaces decision 2). Being asked, saying yes and meeting stay free. Free for everyone until payments go live. Decided 28th October 2026. | Mike: people won't pay for one plan a month. Keeping the asked side free keeps the pool of people large. |
 | 25 | **Delete my account in the app.** Removes the sign-in and everything hanging off it. Reports made by or about the person are kept for the safety team by phone fingerprint, not profile. Decided 28th October 2026. | Apple requires in-app deletion. Deleting must not erase a safety record. |
+| 26 | **Stripe Identity for the pilot ID check.** Photo ID plus live selfie; the verified date of birth replaces the typed one; one document verifies one account (keyed fingerprint, not the number); Stripe deletes the images once verified. Pilot check stays until the keys are set. Decided 30th October 2026. | Cheapest with published pricing (A$2 a check, no monthly fee, first 50 free). No bank door, so a bank check comes before public launch. |
 
 ## State at the end of the first session
 
@@ -58,6 +59,7 @@ A record of what Mike decided while building the first version (26 October 2026)
 - Privacy policy drafted (`docs/privacy-policy.md`), 8 holds for Mike and the lawyer. Terms of use not yet drafted.
 - City, not suburb (migration 0004, decision 19). Photo centring fixed on iPhone: the app squares the photo itself.
 - Push notifications built (migration 0005, decision 20). Expo project linked, `eas.json` added (decision 21). Not yet received on a phone: waiting on the iOS development build.
+- 30th October 2026: Stripe Identity built (migration 0009, decision 26), waiting on Mike's Stripe keys. New iPhone and Android development builds started with the icon, launch screen, contacts and Stripe.
 - Pricing changed (decision 24, migration 0008). Delete my account, hide me from my contacts (reads the phone's contacts, uploads fingerprints daily), Block in the chat, and the meet-up check-in for 16-17 built. `scripts/live-account.mjs` passes; deletion also checked through the web build.
 - Terms of use (`docs/terms-of-use.md`) and the store listing with privacy answers (`docs/app-store-listing.md`) drafted. Draft icon and splash from the brand font and colours (`docs/brand/make-icons.js` regenerates them). Android development build done (build 1271aa09).
 - Plan screening, word-list layer (migration 0007, decision 23). Database, app and mock-up agree on all 26 test phrases.

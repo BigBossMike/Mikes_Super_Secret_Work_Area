@@ -10,12 +10,14 @@ This folder is Intro's "back end": the database that stores people, objectives, 
 | `migrations/0002_contacts_upsert.sql` | Lets a person update their own contact row with an upsert. |
 | `migrations/0003_photos.sql` | The private `photos` Storage bucket and who may read each photo. |
 | `migrations/0004_city.sql` | One city (Brisbane), no suburb question, no distance in matching. |
+| `migrations/0009_identity.sql` | ID checks: Stripe sessions, and a keyed fingerprint of each ID document so one document verifies one account. |
 | `migrations/0008_pricing_and_account.sql` | 7-day trial then $7.99 a month (free during the pilot), and Delete my account (reports kept by phone fingerprint). |
 | `migrations/0007_plan_screening.sql` | Refuses plans that read as dating, put someone down or single someone out (and for 16-17: alcohol, vapes, drugs, homes). |
 | `migrations/0006_parent_mode.sql` | Parent mode: invites to my number, decline, a parent pausing their teen, and the teen told when a parent declines. |
 | `migrations/0005_push.sql` | Push notifications: phone tokens, and triggers that send through Expo (pg_net). A parent's approval now starts the matching. |
 | `config.toml` | The Supabase command-line tool's settings for this project. No secrets. |
 | `functions/connect-handshake/index.ts` | The server code for the in-person "tap phones" connect. |
+| `functions/identity/index.ts`, `functions/identity-webhook/index.ts`, `functions/_shared/identity.ts` | The ID check with Stripe Identity: start a check for the phone, read and apply the result, and Stripe's webhook. |
 | `functions/verify-stub/index.ts` | Pilot-only: marks a person verified from the date of birth they type. Off unless the secret `STUB_VERIFY_ENABLED` is `true`. |
 | `seed.sql` | Made-up Brisbane test people. For testing only, never the live app. |
 | `tests/` | Automated checks that the safety rules work (90 of them). |
@@ -79,6 +81,18 @@ The database does the same to each person's mobile in `private_contacts`. The fu
 
 Note: phone numbers are a small set, so a fingerprint could in principle be reversed by trying every number. That's why only the owner can ever read their own list.
 
+## ID checks (Stripe Identity)
+
+After the profile is saved, the app asks `identity` to start a check and opens Stripe's sheet on the phone (photo ID and a live selfie, straight to Stripe). The result is applied when the app asks (`identity` check) and when Stripe's webhook calls `identity-webhook`, whichever comes first:
+
+- Verified, 16 or over, and a document not already used: `verified_at` and the verified date of birth are set. A different date of birth from the one typed resets the age range.
+- Under 16, or a document that verified another account: not verified.
+- Then Stripe is asked to delete the images and personal data (redaction).
+
+Secrets: `STRIPE_SECRET_KEY`, `STRIPE_IDENTITY_READ_KEY` (restricted, Read on Identity Verification Results and Recent Detailed Verification Results), `STRIPE_WEBHOOK_SECRET`, `IDENTITY_DOC_SALT`. `app/scripts/stripe-setup.mjs` sets the first three and creates the webhook. Until they're set, `identity` says it isn't set up and the app uses `verify-stub`.
+
+Deploy: `supabase functions deploy identity --use-api` and `supabase functions deploy identity-webhook --no-verify-jwt --use-api`.
+
 ## Push notifications
 
 The database sends them itself. Each phone registers its Expo push token (`register_push_token`); triggers call `private.push`, which posts to Expo's push service with `pg_net` after the change is saved. A failed send never blocks the change.
@@ -125,7 +139,7 @@ Done for the Intro project (Sydney, `ap-southeast-2`) on 28th October 2026. Step
 
 ## Still to do before launch
 
-- **ID verification:** connect a provider (Stripe Identity, Persona, ConnectID, etc.). Its webhook should set `verified_at` and the real date of birth using the service role.
+- **ID verification:** Stripe Identity is built (above). Add a bank check (ConnectID through Yoti or Persona) before public launch, an ID check for parents, and the profile-photo match.
 - **Payments:** connect RevenueCat (or Apple and Google directly). Its webhook updates `subscriptions` and `objective_credits`.
 - **AI plan screening:** the word lists catch the obvious. A model (Claude) should read each plan for meaning before launch, with people making the serious calls.
 - **Contact hashing in the app** must follow the recipe above exactly. Test it against `private.phone_hash` before launch.
