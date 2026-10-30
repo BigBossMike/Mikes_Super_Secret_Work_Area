@@ -88,7 +88,7 @@
           "contactsPermission": "Intro checks the numbers in your contacts so you're never paired with people you know. Only fingerprints of the numbers leave your phone."
         }
       ],
-      "./plugins/withMaterialTheme"
+      "./plugins/withStripeIdentityAndroid"
     ],
     "scheme": "intro",
     "extra": {
