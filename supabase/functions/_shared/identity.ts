@@ -47,9 +47,10 @@ export async function startCheck(admin: SupabaseClient, userId: string): Promise
     client_reference_id: userId,
     "metadata[user_id]": userId,
   });
-  const key = await stripe<{ secret: string }>("POST", "ephemeral_keys", sk, { verification_session: session.id });
+  // Record the session before anything else can fail, so every Stripe session is accounted for.
   const { error } = await admin.from("identity_checks").insert({ session_id: session.id, user_id: userId });
   if (error) throw new Error(error.message);
+  const key = await stripe<{ secret: string }>("POST", "ephemeral_keys", sk, { verification_session: session.id });
   return { session_id: session.id, ephemeral_key_secret: key.secret };
 }
 
