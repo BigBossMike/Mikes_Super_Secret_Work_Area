@@ -103,7 +103,7 @@ We share information only with the services that run Intro, and only what each n
 |---|---|---|
 | Supabase | Hosts the database and the app's server code | Sydney, Australia |
 | Stripe (ID check) [Hold 5] | Your ID document and selfie, for the check. Returns verified status and date of birth. Intro then asks Stripe to delete the images and data. | [Hold 5] |
-| Microsoft 365 (email) [Hold 6] | Your email address, to send the sign-in code | [Hold 6] |
+| Microsoft Azure Communication Services (email) | Your email address, to send the sign-in code | Australia |
 | Apple and Google | Payments, app distribution, notifications | United States |
 | Expo | Delivering notifications to your phone (the notification text, your notification token) | United States |
 | RevenueCat | Records which plan you are on | United States |
@@ -179,7 +179,7 @@ We update this policy when Intro changes. The date at the top shows the latest v
 | 3 | Confirm the profile-photo-to-selfie match is in the first release. Remove the sentence if not. |
 | 4 | Retention period for connect locations (suggest 30 days). |
 | 5 | ID check provider name and country, once chosen (`docs/id-provider-comparison.md`). |
-| 6 | Where Cavalry's Microsoft 365 tenant keeps email (Australia, if the tenant is Australian). |
+| 6 | Resolved: Azure Communication Services, Australia. |
 | 7 | Retention period for reports, blocks and safety flags after an account closes (suggest 2 years). |
 | 8 | Privacy contact email and postal address. |
 
