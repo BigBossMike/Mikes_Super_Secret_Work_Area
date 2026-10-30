@@ -3,11 +3,13 @@ import { useState } from "react";
 import { Btn, Field, Notice, Screen, T } from "@/components/ui";
 import { useApp } from "@/store/AppStore";
 
-// Live app only: sign in with a mobile number and the code Intro texts you.
-// Parents sign in the same way, which is how they claim a teen's invite.
+// Live app only: sign in with an email address and the code Intro emails you.
+// Parents sign in the same way, with the email their teen entered.
+// Development builds can also use the test mobile numbers (fixed codes, no email).
 export default function SignIn() {
   const { actions } = useApp();
-  const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
+  const [testNumber, setTestNumber] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -15,7 +17,7 @@ export default function SignIn() {
 
   const send = async () => {
     setError(""); setBusy(true);
-    try { setSentTo(await actions.sendSignInCode(phone)); }
+    try { setSentTo(await actions.sendSignInCode(address)); }
     catch (e) { setError(e instanceof Error ? e.message : "Couldn't send the code. Try again."); }
     setBusy(false);
   };
@@ -31,15 +33,19 @@ export default function SignIn() {
     setBusy(false);
   };
 
+  const ready = testNumber ? address.replace(/\D/g, "").length >= 9 : /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(address.trim());
   return (
     <Screen title="Sign in" footer={sentTo
-      ? <Btn label="Sign in" disabled={busy || code.trim().length < 4} onPress={check} />
-      : <Btn label="Text me a code" disabled={busy || phone.replace(/\D/g, "").length < 9} onPress={send} />}>
-      <T muted>Your mobile number is how you sign in. It's never shown to anyone until you've met them in person.</T>
-      <Field label="Mobile number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="0412 345 678" editable={!sentTo} autoComplete="tel" />
-      {sentTo && <Field label="The code we texted you" value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="123456" autoComplete="sms-otp" />}
-      {sentTo && <T variant="small">Sent to {sentTo}. <T variant="small" style={{ textDecorationLine: "underline" }} onPress={() => { setSentTo(null); setCode(""); }}>Wrong number?</T></T>}
+      ? <Btn label="Sign in" disabled={busy || code.trim().length < 6} onPress={check} />
+      : <Btn label="Email me a code" disabled={busy || !ready} onPress={send} />}>
+      <T muted>{testNumber ? "Development build: sign in as one of the test people." : "Sign in with your email. Intro emails you a 6-digit code. Your email is never shown to anyone."}</T>
+      {testNumber
+        ? <Field label="Test mobile number" value={address} onChangeText={setAddress} keyboardType="phone-pad" placeholder="0491 570 106" editable={!sentTo} />
+        : <Field label="Email" value={address} onChangeText={setAddress} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} placeholder="you@example.com" editable={!sentTo} autoComplete="email" />}
+      {sentTo && <Field label="The code we sent you" value={code} onChangeText={setCode} keyboardType="number-pad" placeholder="123456" autoComplete="one-time-code" maxLength={6} />}
+      {sentTo && <T variant="small">Sent to {sentTo}. Check your junk folder if it's not there in a minute. <T variant="small" style={{ textDecorationLine: "underline" }} onPress={() => { setSentTo(null); setCode(""); }}>Wrong {testNumber ? "number" : "email"}?</T></T>}
       {error ? <Notice kind="warn">{error}</Notice> : null}
+      {__DEV__ && !sentTo && <T variant="small" style={{ textDecorationLine: "underline" }} onPress={() => { setTestNumber(!testNumber); setAddress(""); }}>{testNumber ? "Use an email instead" : "Use a test number (development only)"}</T>}
     </Screen>
   );
 }

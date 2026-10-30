@@ -23,7 +23,7 @@ export interface IncomingRequest {
   photo?: string | null;
 }
 export interface Guardian {
-  name: string; rel: "Mum" | "Dad" | "Guardian"; phone: string; status: "none" | "sent" | "approved";
+  name: string; rel: "Mum" | "Dad" | "Guardian"; email: string; status: "none" | "sent" | "approved";
   approveObjectives: boolean; notifyConnect: boolean; meetCheckin: boolean;
 }
 export interface User {
@@ -37,6 +37,8 @@ export interface User {
   discreet: boolean;
   /** Adults only: ages I'm happy to be paired with. Null means the default, my age ±10. */
   ageMin: number | null; ageMax: number | null;
+  /** Shared only with people I've met in person. The mobile also keeps me from people who have it in their contacts. */
+  fullName: string; mobile: string; instagram: string;
   /** A URL for my photo the app can show (demo: the local file). Null when there isn't one. */
   photo: string | null;
   /** Live: where the photo is stored (profiles.photo_url). */
@@ -81,7 +83,7 @@ export interface State {
 export interface Actions {
   /** Checks the date of birth. Demo: also marks the person verified. Live: the ID check runs when the profile is saved. */
   verify(dob: string): Promise<{ ok: true; age: number } | { ok: false; error: string }>;
-  sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "phone">): void;
+  sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "email">): void;
   /** Saves the profile. Resolves true when saved (live: after the server accepted it). */
   saveProfile(p: Partial<User>): Promise<boolean>;
   /** Sets or removes my profile photo. Live: uploads it and stores the path. Resolves true when done. */
@@ -121,8 +123,9 @@ export interface Actions {
   /** Demo: start over. Live: sign out. */
   reset(): void;
   // Live only. The demo returns at once.
-  sendSignInCode(phone: string): Promise<string>;
-  checkSignInCode(phone: string, code: string): Promise<SignInResult>;
+  /** An email address (development builds also take the test mobile numbers). */
+  sendSignInCode(address: string): Promise<string>;
+  checkSignInCode(address: string, code: string): Promise<SignInResult>;
   refresh(): Promise<SignInResult>;
   // Parent mode. Live only; the demo shows a note instead.
   refreshParent(): Promise<void>;

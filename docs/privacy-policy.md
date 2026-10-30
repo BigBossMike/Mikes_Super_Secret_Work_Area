@@ -22,7 +22,8 @@ We follow the Australian Privacy Principles in the Privacy Act 1988 (Cth).
 
 | What | Why | Where it comes from |
 |---|---|---|
-| Mobile number | Sign in by SMS code. Hide you from people in each other's contacts. | You |
+| Email address | Sign in by emailed code. Never shown to anyone. | You |
+| Mobile number (optional) | Shared with people you've met in person, if you choose. Hides you from people in each other's contacts. | You |
 | First name and photo | Shown to people you are matched with, once they agree | You |
 | Date of birth | Age group (16–17 or 18+) and age ranges. Never shown as a date; people see your age. | The ID check (during the pilot, typed by you) |
 | Verified status and date | Confirms the ID check is done | The ID check provider |
@@ -63,7 +64,7 @@ If the check shows you are under 16, the account is closed and the information c
 
 If you are 16 or 17:
 
-- A parent or guardian must approve your account. You give us their mobile number so they can sign in and approve it.
+- A parent or guardian must approve your account. You give us their email so they can sign in and approve it.
 - Your parent can choose to approve each plan before anyone is asked.
 - Your parent is told when a plan is set, when you connect with someone in person, and when you report someone or are reported.
 - Your parent never sees your chats, your matches before you meet, or the people who said no.
@@ -71,7 +72,7 @@ If you are 16 or 17:
 
 If you are a parent:
 
-- We collect your mobile number and your relationship to the teen.
+- We collect your email and your relationship to the teen.
 - You can see the teen's profile answers, their plans and their in-person connections, and the settings above.
 
 ## 7. Hide me from my contacts
@@ -102,7 +103,7 @@ We share information only with the services that run Intro, and only what each n
 |---|---|---|
 | Supabase | Hosts the database and the app's server code | Sydney, Australia |
 | Stripe (ID check) [Hold 5] | Your ID document and selfie, for the check. Returns verified status and date of birth. Intro then asks Stripe to delete the images and data. | [Hold 5] |
-| SMS provider [Hold 6] | Your mobile number, to send the sign-in code | [Hold 6] |
+| Resend (email) [Hold 6] | Your email address, to send the sign-in code | [Hold 6] |
 | Apple and Google | Payments, app distribution, notifications | United States |
 | Expo | Delivering notifications to your phone (the notification text, your notification token) | United States |
 | RevenueCat | Records which plan you are on | United States |
@@ -111,7 +112,7 @@ We do not sell personal information. We do not share it with advertisers. We may
 
 ## 11. Overseas disclosure
 
-Your data is stored in Australia. The SMS, notification, payment and ID check services in section 10 may process limited information outside Australia, in the countries shown. We choose providers that commit to protecting personal information to a standard at least as high as the Australian Privacy Principles.
+Your data is stored in Australia. The email, notification, payment and ID check services in section 10 may process limited information outside Australia, in the countries shown. We choose providers that commit to protecting personal information to a standard at least as high as the Australian Privacy Principles.
 
 ## 12. How long we keep things
 
@@ -178,7 +179,7 @@ We update this policy when Intro changes. The date at the top shows the latest v
 | 3 | Confirm the profile-photo-to-selfie match is in the first release. Remove the sentence if not. |
 | 4 | Retention period for connect locations (suggest 30 days). |
 | 5 | ID check provider name and country, once chosen (`docs/id-provider-comparison.md`). |
-| 6 | SMS provider name and country, or replace with "email provider" if sign-in moves to email. |
+| 6 | Email provider's country (Resend). |
 | 7 | Retention period for reports, blocks and safety flags after an account closes (suggest 2 years). |
 | 8 | Privacy contact email and postal address. |
 

@@ -7,6 +7,7 @@ import { PhotoPicker } from "@/components/PhotoPicker";
 import { Btn, Chips, Field, Screen, T, useToast } from "@/components/ui";
 import { ageRangeLimits, effectiveAgeRange, isMinor } from "@/lib/age";
 import { CITY, INTERESTS, TIMES } from "@/lib/data";
+import { normalisePhone } from "@/lib/phoneHash";
 import { useApp } from "@/store/AppStore";
 
 export default function Profile() {
@@ -17,6 +18,9 @@ export default function Profile() {
   const [school, setSchool] = useState(u.school);
   const [background, setBackground] = useState(u.background);
   const [workplace, setWorkplace] = useState(u.workplace);
+  const [fullName, setFullName] = useState(u.fullName);
+  const [mobile, setMobile] = useState(u.mobile);
+  const [instagram, setInstagram] = useState(u.instagram);
   const adult = u.age !== null && !isMinor(u.age);
   const [range, setRange] = useState(effectiveAgeRange(u.age ?? 17, u.ageMin ?? undefined, u.ageMax ?? undefined));
 
@@ -25,9 +29,10 @@ export default function Profile() {
   const save = async () => {
     if (!name.trim()) return toast("Add your first name.");
     if (u.interests.length < 2) return toast("Pick at least 2 things you're into.");
+    if (mobile.trim() && !normalisePhone(mobile)) return toast("Enter your mobile like 0412 345 678.");
     setSaving(true);
     const ok = await actions.saveProfile({
-      name: name.trim(), suburb: CITY, school: school.trim(), background: background.trim(), workplace: workplace.trim(),
+      name: name.trim(), suburb: CITY, fullName: fullName.trim(), mobile: mobile.trim(), instagram: instagram.trim(), school: school.trim(), background: background.trim(), workplace: workplace.trim(),
       ...(adult ? { ageMin: range[0], ageMax: range[1] } : {}),
     });
     setSaving(false);
@@ -56,6 +61,13 @@ export default function Profile() {
         ? <Field label="Workplace" hint="Optional. Keeps people from work out of your matches." value={workplace} onChangeText={setWorkplace} placeholder="Where you work" />
         : <Field label="School" hint="Optional. Lets you keep people from your school out of your matches." value={school} onChangeText={setSchool} placeholder="Your school" />}
       <Field label="Cultural background" hint="Optional and private." value={background} onChangeText={setBackground} placeholder="e.g. Samoan, Indian, Greek" />
+      <View style={{ gap: 8 }}>
+        <T variant="label">Shared only after you meet</T>
+        <T variant="small">When you and someone connect in person, you swap these. Your mobile also keeps people in your phone contacts from being paired with you.</T>
+      </View>
+      <Field label="Full name" value={fullName} onChangeText={setFullName} maxLength={60} placeholder={name || "Your full name"} />
+      <Field label="Mobile" value={mobile} onChangeText={setMobile} keyboardType="phone-pad" placeholder="0412 345 678" />
+      <Field label="Instagram" hint="Optional." value={instagram} onChangeText={setInstagram} autoCapitalize="none" autoCorrect={false} placeholder="@yourname" />
     </Screen>
   );
 }

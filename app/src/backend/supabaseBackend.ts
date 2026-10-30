@@ -10,6 +10,8 @@ import type {
 
 export interface ObjectiveDraftRow { type: string; text: string; when_text: string | null; where_text: string | null; group_size: number }
 
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+
 const must = <T>(r: { data: T | null; error: { message: string } | null }): T => {
   if (r.error) throw r.error;
   return r.data as T;
@@ -40,16 +42,27 @@ export class SupabaseBackend {
     return () => data.subscription.unsubscribe();
   }
 
-  async sendSignInCode(phone: string): Promise<string> {
-    const e164 = normalisePhone(phone);
-    if (!e164) throw new Error("Enter an Australian mobile number, e.g. 0412 345 678.");
+  /** Sends a sign-in code to an email address. Development builds also accept the test mobile numbers. Returns the address used. */
+  async sendSignInCode(address: string): Promise<string> {
+    if (address.includes("@")) {
+      const email = address.trim().toLowerCase();
+      if (!EMAIL.test(email)) throw new Error("Enter your email address, e.g. alex@example.com.");
+      const { error } = await this.db.auth.signInWithOtp({ email, options: { shouldCreateUser: true } });
+      if (error) throw error;
+      return email;
+    }
+    const e164 = normalisePhone(address);
+    if (!e164) throw new Error("Enter a test mobile number, e.g. 0491 570 106.");
     const { error } = await this.db.auth.signInWithOtp({ phone: e164 });
     if (error) throw error;
     return e164;
   }
 
   async checkSignInCode(phone: string, code: string): Promise<void> {
-    const { error } = await this.db.auth.verifyOtp({ phone, token: code.trim(), type: "sms" });
+    const token = code.trim();
+    const { error } = phone.includes("@")
+      ? await this.db.auth.verifyOtp({ email: phone, token, type: "email" })
+      : await this.db.auth.verifyOtp({ phone, token, type: "sms" });
     if (error) throw error;
   }
 
@@ -90,6 +103,13 @@ export class SupabaseBackend {
     must(await this.db.from("profile_private").upsert({ id, cultural_background: text || null }));
   }
 
+  /** My own contact details, shared only with people I've met in person. */
+  async myContacts(): Promise<ContactRow | null> {
+    const id = await this.userId();
+    if (!id) return null;
+    return must(await this.db.from("private_contacts").select("full_name, mobile, instagram").eq("id", id).maybeSingle<ContactRow>());
+  }
+
   async saveContacts(c: { full_name: string; mobile: string | null; instagram: string | null }): Promise<void> {
     const id = await this.userId();
     if (!id) return;
@@ -123,12 +143,13 @@ export class SupabaseBackend {
     return rows[0] ?? null;
   }
 
-  async inviteGuardian(relationship: GuardianRow["relationship"], phone: string): Promise<GuardianRow> {
+  /** Invite a parent by the email they'll sign in with. */
+  async inviteGuardian(relationship: GuardianRow["relationship"], email: string): Promise<GuardianRow> {
     const id = await this.userId();
     if (!id) throw new Error("Sign in first.");
-    const e164 = normalisePhone(phone);
-    if (!e164) throw new Error("Enter their Australian mobile number.");
-    return must(await this.db.from("guardians").insert({ teen_id: id, relationship, invite_phone: e164 }).select("*").single<GuardianRow>());
+    const address = email.trim().toLowerCase();
+    if (!EMAIL.test(address)) throw new Error("Enter their email address.");
+    return must(await this.db.from("guardians").insert({ teen_id: id, relationship, invite_email: address }).select("*").single<GuardianRow>());
   }
 
   /** Parent side: change my settings for a teen. The database only lets the parent do this. */

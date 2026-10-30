@@ -9,18 +9,18 @@ export default function GuardianSignOff() {
   const g = state.guardian;
   const [name, setName] = useState(g.name);
   const [rel, setRel] = useState<Guardian["rel"]>(g.rel);
-  const [phone, setPhone] = useState(g.phone);
+  const [email, setEmail] = useState(g.email);
 
   return (
     <Screen title="Parent or guardian" footer={<Btn label="Continue" disabled={g.status !== "approved"} onPress={() => router.replace(LIVE ? "/home" : "/profile")} />}>
-      <T muted>You're under 18, so a parent or guardian needs to OK your account. They download Intro and sign in with their own mobile number.</T>
+      <T muted>You're under 18, so a parent or guardian needs to OK your account. They download Intro and sign in with their own email.</T>
       <Field label="Their first name" value={name} onChangeText={setName} maxLength={20} />
       <T variant="label">They're your</T>
       <Chips options={["Mum", "Dad", "Guardian"]} selected={[rel]} onToggle={v => setRel(v as Guardian["rel"])} />
-      <Field label="Their mobile" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-      <Btn small variant="ghost" label={LIVE ? "Send request" : "Send request (demo)"} disabled={!name.trim() || !phone.trim() || g.status === "sent"}
-        onPress={() => actions.sendGuardianRequest({ name: name.trim(), rel, phone: phone.trim() })} />
-      {g.status === "sent" && <Notice>{LIVE ? `Waiting for ${g.name}. Ask them to sign in to Intro with ${g.phone} and approve you.` : `Waiting for ${g.name} to approve…`}</Notice>}
+      <Field label="Their email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} />
+      <Btn small variant="ghost" label={LIVE ? "Send request" : "Send request (demo)"} disabled={!name.trim() || !email.trim() || g.status === "sent"}
+        onPress={() => actions.sendGuardianRequest({ name: name.trim(), rel, email: email.trim() })} />
+      {g.status === "sent" && <Notice>{LIVE ? `Waiting for ${g.name}. Ask them to download Intro, sign in with ${g.email} and approve you.` : `Waiting for ${g.name} to approve…`}</Notice>}
       {g.status === "approved" && <Notice kind="ok">{g.name} approved your account.</Notice>}
       <Card variant="sunk">
         <T variant="h3">What they can see</T>

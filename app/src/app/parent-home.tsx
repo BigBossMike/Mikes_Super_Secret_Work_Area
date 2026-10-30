@@ -1,4 +1,4 @@
-// Parent mode (live app). A parent signs in with the mobile number their teen
+// Parent mode (live app). A parent signs in with the email their teen
 // entered, approves the invite, then sees this screen: plans waiting for their
 // OK, the controls, meet-ups and activity. Never chats.
 import { router, useFocusEffect } from "expo-router";
@@ -49,7 +49,7 @@ export default function ParentHome() {
       {p.teens.map(t => <Teen key={t.linkId} teen={t} busy={busy} run={run} />)}
 
       {!p.invites.length && !p.teens.length && (
-        <Notice>Nothing is linked to this number yet. When your teen adds you as their parent in Intro, their request shows here.</Notice>
+        <Notice>Nothing is linked to this email yet. When your teen adds you as their parent in Intro, their request shows here.</Notice>
       )}
     </Screen>
   );

@@ -28,7 +28,8 @@ export interface GuardianRow {
   teen_id: string;
   guardian_id: string | null;
   relationship: "mum" | "dad" | "parent" | "guardian";
-  invite_phone: string;
+  invite_phone: string | null;
+  invite_email: string | null;
   status: "pending" | "approved" | "revoked";
   approve_objectives: boolean;
   notify_connect: boolean;

@@ -40,7 +40,7 @@ npm run typecheck
 
 What changes in live mode:
 
-- Sign in by mobile number and an SMS code (new `signin.tsx` screen). Parents sign in the same way to approve a teen.
+- Sign in by email and a 6-digit code (`signin.tsx`). Parents sign in the same way, with the email their teen entered. Development builds also offer the test numbers. The profile asks for full name, mobile and Instagram, shared only after meeting; the mobile also drives "hide me from my contacts".
 - Order at sign-up: age, then profile, then the parent sign-off for under-18s (the database needs the profile first).
 - "Confirm my age" uses the typed date of birth. The server's `verify-stub` function marks the person verified. Pilot only: the ID-check provider replaces it before launch.
 - Matches, requests, chats, connections and the plan allowance come from the database. New requests and chat messages arrive live; answers to your own plan are checked every 5 seconds.

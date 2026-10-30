@@ -61,7 +61,8 @@ Tracking across other companies' apps: none. No advertising, no analytics or cra
 
 | Data | Apple type | Collected for | Linked to the person |
 |---|---|---|---|
-| Mobile number | Contact Info: Phone Number | App functionality (sign-in, hide me from my contacts) | Yes |
+| Email address | Contact Info: Email Address | App functionality (sign-in, parent invites) | Yes |
+| Mobile number (optional) | Contact Info: Phone Number | App functionality (shared after meeting, hide me from my contacts) | Yes |
 | First name; full name if shared after meeting | Contact Info: Name | App functionality | Yes |
 | Instagram handle if shared after meeting | Contact Info: Other User Contact Info | App functionality | Yes |
 | Profile photo | User Content: Photos or Videos | App functionality | Yes |
@@ -79,7 +80,7 @@ Google Data safety: same list. Data is encrypted in transit. People can ask for 
 
 ## Review notes for Apple
 
-- Sign-in: phone number and SMS code. Review account: [Hold 4] (a test number with a fixed code).
+- Sign-in: email and a 6-digit code. Review account: [Hold 4] (an email Apple can receive the code at, or a review-only build with a test number).
 - The in-person Connect needs two phones together. Reviewers can use the QR code option on one phone, or watch the demo video [Hold 5].
 - Bluetooth and location are used only at the moment of Connect.
 

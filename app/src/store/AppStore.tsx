@@ -41,8 +41,8 @@ function initial(): State {
   return {
     user: { name: "Alex", dob: "2009-03-14", age: null, verified: false, suburb: CITY, interests: ["Football", "Music", "Movies"],
       times: ["Saturdays", "Weeknights"], school: "", background: "", keepSchoolOut: true, paused: false,
-      workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null },
-    guardian: { name: "Chris", rel: "Dad", phone: "0491 570 157", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
+      workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, fullName: "Alex Taylor", mobile: "0491 570 101", instagram: "alex.example", photo: null },
+    guardian: { name: "Chris", rel: "Dad", email: "chris@example.com", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true },
     plan: "unlimited", credits: 0, used: 0,
     billing: { pilot: false, subscribed: true, inTrial: true, renewsAt: new Date(Date.now() + 7 * 864e5).toISOString() },
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
@@ -87,7 +87,7 @@ function useDemoStore(): Store {
         res({ ok: true, age });
       }, 1400));
     },
-    sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "phone">) {
+    sendGuardianRequest(g: Pick<Guardian, "name" | "rel" | "email">) {
       update(s => { Object.assign(s.guardian, g); s.guardian.status = "sent"; });
       setTimeout(() => update(s => { s.guardian.status = "approved"; }), 1400);
     },

@@ -34,6 +34,9 @@ export function userFromProfile(p: ProfileRow, background = ""): User {
     discreet: p.discreet_notifications,
     ageMin: p.match_age_min,
     ageMax: p.match_age_max,
+    fullName: "",
+    mobile: "",
+    instagram: "",
     photo: null,
     photoPath: p.photo_url,
   };
@@ -43,11 +46,11 @@ const REL: Record<GuardianRow["relationship"], Guardian["rel"]> = { mum: "Mum", 
 export const relToDb = (rel: Guardian["rel"]): GuardianRow["relationship"] => (rel === "Mum" ? "mum" : rel === "Dad" ? "dad" : "guardian");
 
 export function guardianFromRow(g: GuardianRow | null, name: string): Guardian {
-  if (!g) return { name: name || "your parent", rel: "Guardian", phone: "", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true };
+  if (!g) return { name: name || "your parent", rel: "Guardian", email: "", status: "none", approveObjectives: true, notifyConnect: true, meetCheckin: true };
   return {
     name: name || "your parent",
     rel: REL[g.relationship],
-    phone: g.invite_phone,
+    email: g.invite_email ?? g.invite_phone ?? "",
     status: g.status === "approved" ? "approved" : g.status === "pending" ? "sent" : "none",
     approveObjectives: g.approve_objectives,
     notifyConnect: g.notify_connect,

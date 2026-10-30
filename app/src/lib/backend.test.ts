@@ -64,9 +64,9 @@ describe("database rows to screen state", () => {
   });
   it("maps a guardian link", () => {
     expect(guardianFromRow(null, "").status).toBe("none");
-    const g = guardianFromRow({ id: "g", teen_id: "u1", guardian_id: null, relationship: "dad", invite_phone: "+61491570157", status: "pending",
+    const g = guardianFromRow({ id: "g", teen_id: "u1", guardian_id: null, relationship: "dad", invite_phone: null, invite_email: "chris@example.com", status: "pending",
       approve_objectives: true, notify_connect: false, meet_checkin: true, created_at: "", approved_at: null }, "Chris");
-    expect(g).toMatchObject({ name: "Chris", rel: "Dad", status: "sent", notifyConnect: false });
+    expect(g).toMatchObject({ name: "Chris", rel: "Dad", email: "chris@example.com", status: "sent", notifyConnect: false });
   });
   it("keeps people anonymous until they agree", () => {
     const asking: MyMatchRow = { request_id: "r1", status: "asking", score: null, reasons: [], candidate_id: null, first_name: null, age: null, suburb: null, photo_url: null };
@@ -96,7 +96,7 @@ describe("database rows to screen state", () => {
       .toEqual({ id: "i1", teenName: "Tess", teenAge: 17, rel: "Mum" });
   });
   it("builds a teen for the parent screen, never anything about chats", () => {
-    const link = { id: "g1", teen_id: "t1", guardian_id: "p1", relationship: "dad" as const, invite_phone: "+61491570108", status: "approved" as const,
+    const link = { id: "g1", teen_id: "t1", guardian_id: "p1", relationship: "dad" as const, invite_phone: null, invite_email: "parent@example.com", status: "approved" as const,
       approve_objectives: true, notify_connect: false, meet_checkin: true, created_at: "", approved_at: "" };
     const profile = { id: "t1", first_name: "Tess", date_of_birth: "2009-01-15", photo_url: "t1/a.jpg", can_be_put_forward: false, verified_at: "2026-10-28" };
     const plan = { id: "o1", owner_id: "t1", type: "sport", text: "A fifth player for Saturday football", when_text: "Saturdays", where_text: null,

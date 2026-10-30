@@ -28,7 +28,7 @@ function empty(): State {
   const first = OBJECTIVE_TYPES.find(t => t.id === "sport")!;
   return {
     user: { name: "", dob: "", age: null, verified: false, suburb: CITY, interests: [], times: [], school: "", background: "",
-      keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, photo: null, photoPath: null },
+      keepSchoolOut: true, paused: false, workplace: "", keepWorkplaceOut: true, hideContacts: true, discreet: false, ageMin: null, ageMax: null, fullName: "", mobile: "", instagram: "", photo: null, photoPath: null },
     guardian: guardianFromRow(null, ""),
     plan: "free", credits: 0, used: 0, remaining: 1, billing: { pilot: true, subscribed: false, inTrial: false, renewsAt: null },
     draft: { type: first.id, text: first.text, when: first.when, where: first.where, group: first.group }, draftEdited: false,
@@ -173,14 +173,15 @@ function useLiveStore(): Store {
       if (isParent) registerPush(session.user.id);
       return { hasProfile: false, isParent };
     }
-    const [myPlan, background, link, allowance, objective, guardianName] = await Promise.all([
-      backend.myPlan(), backend.myBackground(), backend.myGuardianLink(), backend.allowance(), backend.currentObjective(),
+    const [contacts, myPlan, background, link, allowance, objective, guardianName] = await Promise.all([
+      backend.myContacts().catch(() => null), backend.myPlan(), backend.myBackground(), backend.myGuardianLink(), backend.allowance(), backend.currentObjective(),
       AsyncStorage.getItem(`intro.guardianName.${session.user.id}`).catch(() => null),
     ]);
     guardianLinkId.current = link?.id ?? null;
     update(s => {
       s.session = "in"; s.hasProfile = true;
-      s.user = { ...userFromProfile(profile, background), photo: photoUrl(profile.photo_url) };
+      s.user = { ...userFromProfile(profile, background), photo: photoUrl(profile.photo_url),
+        fullName: contacts?.full_name ?? "", mobile: contacts?.mobile ?? "", instagram: contacts?.instagram ?? "" };
       s.guardian = guardianFromRow(link, guardianName ?? "");
       s.plan = allowance.plan; s.used = allowance.used_this_month; s.credits = allowance.extra_credits; s.remaining = allowance.remaining;
       s.billing = { pilot: !myPlan.payments_live, subscribed: myPlan.subscribed, inTrial: myPlan.in_trial, renewsAt: myPlan.renews_at };
@@ -270,7 +271,7 @@ function useLiveStore(): Store {
     sendGuardianRequest(g) {
       (async () => {
         try {
-          const link = await backend.inviteGuardian(relToDb(g.rel), g.phone);
+          const link = await backend.inviteGuardian(relToDb(g.rel), g.email);
           guardianLinkId.current = link.id;
           await AsyncStorage.setItem(guardianNameKey(), g.name).catch(() => {});
           update(s => { s.guardian = guardianFromRow(link, g.name); });
@@ -289,6 +290,10 @@ function useLiveStore(): Store {
         } else {
           await backend.updateProfile(profileFields(u));
           await backend.saveBackground(u.background);
+        }
+        // Contact details, shared only after meeting in person.
+        if (u.mobile.trim() || u.instagram.trim() || u.fullName.trim()) {
+          await backend.saveContacts({ full_name: u.fullName.trim() || u.name, mobile: u.mobile.trim() || null, instagram: u.instagram.trim().replace(/^@/, "") || null });
         }
         await loadAll();
         return true;

@@ -31,7 +31,7 @@ Intro is not a dating service. Plans for dating are not allowed.
 
 ## 4. Your account
 
-- You sign in with your mobile number. Keep your phone and sign-in codes to yourself.
+- You sign in with your email and a code Intro emails you. Keep your email and sign-in codes to yourself.
 - Your details must be true: your own first name, your own photo of your face, your own date of birth.
 - You are responsible for what happens on your account.
 - Tell us straight away if you think someone else has used your account.
@@ -66,7 +66,7 @@ Intro checks ages and keeps chat locked until you meet. It does not run criminal
 
 ## 7. Parents of 16 and 17 year olds
 
-- A parent or guardian approves the teen's account by signing in with the mobile number the teen entered.
+- A parent or guardian approves the teen's account by signing in with the email the teen entered.
 - The parent can choose to approve each plan before anyone is asked, be told when the teen meets someone, and see the place and time of a meet-up.
 - The parent can pause the teen's account.
 - The parent never sees the teen's chats.

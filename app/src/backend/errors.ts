@@ -30,6 +30,8 @@ export function friendlyError(e: unknown): string {
   const refused = planRefusedKind(e);
   if (refused) return d.hint ?? PLAN_ISSUE_MESSAGE[refused as PlanIssue] ?? "This plan can't go out as written. Change the wording and try again.";
   const m = d.message ?? "";
+  if (/rate limit|too many/i.test(m)) return "Too many codes asked for. Wait a few minutes and try again.";
+  if (/token has expired|invalid.*(otp|token)|otp.*(expired|invalid)/i.test(m)) return "That code didn't work or has expired. Ask for a new one.";
   if (/network|fetch|failed to connect|timeout/i.test(m)) return "No connection. Check your internet and try again.";
   if (/jwt|not authenticated|sign in|session/i.test(m)) return "Sign in to Intro again.";
   if (d.code === "P0001" || d.code === "P0002" || d.code === "42501") return m;   // the database's own plain-English messages
