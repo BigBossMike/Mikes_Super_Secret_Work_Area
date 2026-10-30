@@ -14,6 +14,7 @@ import { blockedReason } from "@/lib/contactFilter";
 import { newPhotoPath, PHOTO_URL_TTL_S } from "@/lib/photos";
 import { fromBase64 } from "@/lib/sha256";
 import { readContactHashes } from "@/contacts/hideContacts";
+import { presentIdCheck } from "@/identity/idCheck";
 import { getPushToken, savedPushToken } from "@/notifications/push";
 import { CITY, defaultTypeFor, OBJECTIVE_TYPES } from "@/lib/data";
 import type { Person } from "@/lib/types";
@@ -284,9 +285,7 @@ function useLiveStore(): Store {
         if (!ref.current.hasProfile) {
           await backend.createProfile(profileFields(u));
           await backend.saveBackground(u.background);
-          // Pilot: the server marks the person verified from the date of birth they typed.
-          // Replaced by the ID-check provider (CLAUDE.md next step 2).
-          try { await backend.verifyStub(u.dob); } catch (e) { toast(`ID check not done: ${friendlyError(e)}`); }
+          // The ID check comes next, on its own screen (id-check.tsx).
         } else {
           await backend.updateProfile(profileFields(u));
           await backend.saveBackground(u.background);
@@ -458,6 +457,29 @@ function useLiveStore(): Store {
         toast(`Shared with ${parent}.`);
         return true;
       } catch (e) { fail(e); return false; }
+    },
+    async idCheckMode() {
+      return (await backend.identityConfigured().catch(() => false)) ? "stripe" : "pilot";
+    },
+    async runIdCheck() {
+      try {
+        const start = await backend.identityStart();
+        if ("status" in start) { await loadAll(); return { status: "verified" }; }
+        const sheet = await presentIdCheck(start.session_id, start.ephemeral_key_secret);
+        if (sheet.result !== "completed") return { status: sheet.result === "canceled" ? "canceled" : sheet.result, reason: sheet.message };
+        // Stripe usually decides within seconds; keep asking for up to about 40 seconds.
+        let r = { status: "processing" } as { status: string; reason?: string };
+        for (let i = 0; i < 20 && (r.status === "processing" || r.status === "requires_input" && i < 2); i++) {
+          await new Promise(res => setTimeout(res, 2000));
+          r = await backend.identityCheck();
+        }
+        if (r.status === "verified") await loadAll();
+        return r;
+      } catch (e) { return { status: "failed", reason: friendlyError(e) }; }
+    },
+    async pilotVerify() {
+      try { await backend.verifyStub(ref.current.user.dob); await loadAll(); return true; }
+      catch (e) { fail(e); return false; }
     },
     async deleteAccount() {
       try {

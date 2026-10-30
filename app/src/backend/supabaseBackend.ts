@@ -207,6 +207,28 @@ export class SupabaseBackend {
     must(await this.db.from("meetup_checkins").insert({ match_request_id: matchRequestId, user_id: id, place, meet_at: meetAtIso }));
   }
 
+  // ---- ID check (supabase/functions/identity) ---------------------------------
+
+  /** Are the Stripe keys set on the server? If not, the pilot check (verify-stub) is used. */
+  async identityConfigured(): Promise<boolean> {
+    const { data, error } = await this.db.functions.invoke("identity", { body: { action: "config" } });
+    return !error && Boolean(data?.configured);
+  }
+
+  /** A new Stripe session for the phone's sheet, or "verified" if I already am. */
+  async identityStart(): Promise<{ session_id: string; ephemeral_key_secret: string } | { status: "verified" }> {
+    const { data, error } = await this.db.functions.invoke("identity", { body: { action: "start" } });
+    if (error) throw error;
+    return data;
+  }
+
+  /** The latest check's result, applied to my profile on the server. */
+  async identityCheck(): Promise<{ status: string; reason?: string }> {
+    const { data, error } = await this.db.functions.invoke("identity", { body: { action: "check" } });
+    if (error) throw error;
+    return data;
+  }
+
   /** Deletes me and everything that hangs off my sign-in. Remove the photo from Storage first. */
   async deleteMyAccount(): Promise<void> {
     await this.rpc("delete_my_account");

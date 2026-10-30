@@ -32,7 +32,8 @@ export default function Profile() {
     });
     setSaving(false);
     if (!ok) return;
-    // Live: under-18s do the parent sign-off after the profile exists.
+    // Live: the ID check comes next (it needs the profile), then the parent sign-off for under-18s.
+    if (LIVE && !state.user.verified) return router.replace("/id-check");
     const needsParent = LIVE && u.age !== null && isMinor(u.age) && state.guardian.status !== "approved";
     router.replace(needsParent ? "/guardian" : "/home");
   };

@@ -193,6 +193,9 @@ function useDemoStore(): Store {
       return true;
     },
     async deleteAccount() { setState(initial()); toast("Demo started again."); return true; },
+    idCheckMode: () => Promise.resolve("pilot" as const),
+    runIdCheck: () => Promise.resolve({ status: "verified" }),
+    async pilotVerify() { update(s => { s.user.verified = true; }); return true; },
     reset() { setState(initial()); },
     sendSignInCode: phone => Promise.resolve(phone),
     checkSignInCode: () => Promise.resolve({ hasProfile: true, isParent: false }),

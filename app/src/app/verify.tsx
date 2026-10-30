@@ -30,13 +30,14 @@ export default function Verify() {
       <Card variant="sunk">
         <T variant="h3">Photo ID</T>
         <T variant="small">Driver or learner licence, passport, or a Queensland Proof of Age card, plus a quick selfie to match it.</T>
-        <Btn small variant="ghost" label={LIVE ? "Confirm my age" : "Scan my ID (demo)"} onPress={scan} disabled={busy} />
+        {LIVE ? <T variant="small">You'll do the photo ID check after your profile.</T>
+          : <Btn small variant="ghost" label="Scan my ID (demo)" onPress={scan} disabled={busy} />}
       </Card>
       {error ? <Notice kind="warn">{error}</Notice>
         : busy ? <Notice>Checking your ID and selfie…</Notice>
         : u.age !== null && (u.verified || LIVE) ? <Notice kind="ok">{LIVE ? "Age" : "Verified. Age"} {u.age}, so you'll be matched in the {bandLabel(ageBand(u.age))} group.</Notice> : null}
       <T variant="small">{LIVE
-        ? "During the pilot Intro uses the date of birth you type. The ID check (photo ID and selfie, or a bank check) comes before the public launch. Intro will store only that you're verified and your age, never the ID photo."
+        ? "Your ID check confirms this date. Intro keeps only that you're verified and your date of birth, never the ID photo."
         : "In the real app a verification provider checks the ID. Intro stores only that you're verified and your age, never the ID photo."}</T>
     </Screen>
   );

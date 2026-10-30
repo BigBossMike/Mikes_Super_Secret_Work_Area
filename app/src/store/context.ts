@@ -112,6 +112,12 @@ export interface Actions {
   shareMeetup(id: string, place: string, meetAtIso: string, label: string): Promise<boolean>;
   /** Live: deletes the account. Demo: starts again. */
   deleteAccount(): Promise<boolean>;
+  /** ID check: "stripe" once the Stripe keys are on the server, otherwise "pilot" (the typed date of birth). */
+  idCheckMode(): Promise<"stripe" | "pilot">;
+  /** Stripe: open the sheet, then wait for the result. */
+  runIdCheck(): Promise<{ status: string; reason?: string }>;
+  /** Pilot: verified from the typed date of birth. */
+  pilotVerify(): Promise<boolean>;
   /** Demo: start over. Live: sign out. */
   reset(): void;
   // Live only. The demo returns at once.
